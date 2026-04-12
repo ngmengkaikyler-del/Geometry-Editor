@@ -12,9 +12,9 @@ interface GameRendererProps {
 }
 
 const MODE_COLORS: Record<PlayableMode, string> = {
-  cube: "#22d3ee",
+  cube: "#40e0d0",
   ship: "#a78bfa",
-  spider: "#6b7280",
+  spider: "#9ca3af",
   wave: "#facc15",
 };
 
@@ -25,8 +25,34 @@ const MODE_SHAPES: Record<PlayableMode, string> = {
   wave: "slash",
 };
 
-const GROUND_COLOR = "#1e3a5f";
-const GROUND_LINE_COLOR = "#4a90d9";
+const BG_COLOR_TOP = "#000428";
+const BG_COLOR_MID = "#001845";
+const BG_COLOR_BOT = "#002855";
+const GROUND_DARK = "#0a1628";
+const GROUND_LIGHT = "#0f2040";
+const GROUND_TOP_LINE = "#2563eb";
+
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  brightness: number;
+  speed: number;
+}
+
+function generateStars(count: number): Star[] {
+  const stars: Star[] = [];
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: Math.random() * 3000,
+      y: Math.random() * VIEWPORT_H * 0.85,
+      size: Math.random() * 1.5 + 0.5,
+      brightness: Math.random() * 0.4 + 0.1,
+      speed: Math.random() * 0.3 + 0.1,
+    });
+  }
+  return stars;
+}
 
 export function GameRenderer({ objects, customImages, startMode, onStop }: GameRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,6 +62,9 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   const lastTimeRef = useRef<number>(0);
   const deathTimeRef = useRef<number>(0);
   const attemptsRef = useRef(1);
+  const starsRef = useRef<Star[]>(generateStars(80));
+  const trailRef = useRef<{x: number; y: number; alpha: number}[]>([]);
+  const attemptFlashRef = useRef<number>(0);
 
   const restart = useCallback(() => {
     stateRef.current = createInitialState(startMode);
@@ -43,6 +72,8 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     lastTimeRef.current = 0;
     deathTimeRef.current = 0;
     attemptsRef.current++;
+    trailRef.current = [];
+    attemptFlashRef.current = performance.now();
   }, [startMode]);
 
   const imgMapRef = useRef<Map<string, CustomImage>>(new Map());
@@ -56,6 +87,8 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     stateRef.current = createInitialState(startMode);
     holdingRef.current = false;
     lastTimeRef.current = 0;
+    attemptFlashRef.current = performance.now();
+    trailRef.current = [];
   }, [startMode]);
 
   const drawPlayer = useCallback((ctx: CanvasRenderingContext2D, p: GameState["player"], camX: number) => {
@@ -64,43 +97,78 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const color = MODE_COLORS[p.mode];
     const px = screenX + PLAYER_OFFSET;
     const py = sy + PLAYER_OFFSET;
+    const cx = px + PLAYER_W / 2;
+    const cy = py + PLAYER_H / 2;
+
+    const trail = trailRef.current;
+    trail.push({ x: cx, y: cy, alpha: 0.6 });
+    if (trail.length > 12) trail.shift();
+    for (let i = 0; i < trail.length - 1; i++) {
+      const t = trail[i];
+      const trailScreenX = t.x - (p.worldX - screenX - PLAYER_OFFSET - PLAYER_W / 2) + (screenX + PLAYER_OFFSET + PLAYER_W / 2 - t.x);
+      ctx.fillStyle = `${color}${Math.floor(t.alpha * 40).toString(16).padStart(2, "0")}`;
+      const sz = PLAYER_W * 0.5 * (i / trail.length);
+      ctx.fillRect(t.x - sz / 2, t.y - sz / 2, sz, sz);
+      t.alpha *= 0.85;
+    }
 
     ctx.save();
 
     const rotation = p.rotation;
-
     if (rotation !== 0) {
-      const cx = px + PLAYER_W / 2;
-      const cy = py + PLAYER_H / 2;
       ctx.translate(cx, cy);
       ctx.rotate(rotation);
       ctx.translate(-cx, -cy);
     }
 
-    ctx.fillStyle = color;
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 2;
-
     switch (MODE_SHAPES[p.mode]) {
-      case "square":
+      case "square": {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = color;
         ctx.fillRect(px, py, PLAYER_W, PLAYER_H);
-        ctx.strokeRect(px, py, PLAYER_W, PLAYER_H);
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.fillRect(px + PLAYER_W * 0.3, py + PLAYER_W * 0.25, PLAYER_W * 0.4, PLAYER_H * 0.35);
+        ctx.shadowBlur = 0;
+
+        const darker = shadeColor(color, -30);
+        ctx.fillStyle = darker;
+        ctx.fillRect(px + 2, py + 2, PLAYER_W - 4, PLAYER_H - 4);
+        ctx.fillStyle = color;
+        ctx.fillRect(px + 3, py + 3, PLAYER_W - 6, PLAYER_H - 6);
+
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px + 1, py + 1, PLAYER_W - 2, PLAYER_H - 2);
+
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        const iconSize = PLAYER_W * 0.35;
+        const iconX = cx - iconSize / 2;
+        const iconY = cy - iconSize / 2;
+        ctx.fillRect(iconX, iconY, iconSize, iconSize);
+        ctx.fillStyle = color;
+        const innerSize = iconSize * 0.5;
+        ctx.fillRect(cx - innerSize / 2, cy - innerSize / 2, innerSize, innerSize);
         break;
+      }
       case "triangle": {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.moveTo(px + PLAYER_W, py + PLAYER_H * 0.5);
+        ctx.moveTo(px + PLAYER_W, cy);
         ctx.lineTo(px, py + PLAYER_H);
         ctx.lineTo(px, py);
         ctx.closePath();
         ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
         ctx.stroke();
         break;
       }
       case "diamond": {
-        const cx = px + PLAYER_W / 2;
-        const cy = py + PLAYER_H / 2;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(cx, py);
         ctx.lineTo(px + PLAYER_W, cy);
@@ -108,21 +176,27 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.lineTo(px, cy);
         ctx.closePath();
         ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
         ctx.stroke();
         break;
       }
       case "slash": {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(px, py + PLAYER_H);
+        ctx.lineTo(px + PLAYER_W * 0.3, py + PLAYER_H);
         ctx.lineTo(px + PLAYER_W, py);
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = color;
-        ctx.stroke();
+        ctx.lineTo(px + PLAYER_W * 0.7, py);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.fillRect(px + PLAYER_W * 0.2, py + PLAYER_H * 0.2, PLAYER_W * 0.6, PLAYER_H * 0.6);
-        ctx.strokeRect(px + PLAYER_W * 0.2, py + PLAYER_H * 0.2, PLAYER_W * 0.6, PLAYER_H * 0.6);
         break;
       }
     }
@@ -130,42 +204,67 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     ctx.restore();
   }, []);
 
-  const drawLevel = useCallback((ctx: CanvasRenderingContext2D, camX: number) => {
+  const drawLevel = useCallback((ctx: CanvasRenderingContext2D, camX: number, time: number) => {
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     const imgMap = imgMapRef.current;
+    const groundY = (ROWS - 1) * TILE;
 
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, "#0a0a1a");
-    grad.addColorStop(0.6, "#0d1025");
-    grad.addColorStop(1, "#111833");
+    const grad = ctx.createLinearGradient(0, 0, 0, groundY);
+    grad.addColorStop(0, BG_COLOR_TOP);
+    grad.addColorStop(0.5, BG_COLOR_MID);
+    grad.addColorStop(1, BG_COLOR_BOT);
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, w, groundY);
+
+    const stars = starsRef.current;
+    for (const star of stars) {
+      const sx = ((star.x - camX * star.speed) % (w + 20) + w + 20) % (w + 20);
+      const twinkle = 0.5 + 0.5 * Math.sin(time * 0.001 * star.speed + star.x);
+      const alpha = star.brightness * twinkle;
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(sx, star.y, star.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     const startCol = Math.max(0, Math.floor(camX / TILE));
     const endCol = Math.min(COLS, Math.ceil((camX + w) / TILE) + 1);
 
-    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    for (let c = startCol; c <= endCol; c++) {
+      const gx = c * TILE - camX;
+      const isEven = c % 2 === 0;
+      ctx.fillStyle = isEven ? GROUND_DARK : GROUND_LIGHT;
+      ctx.fillRect(gx, groundY, TILE, TILE);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(gx, groundY, TILE, TILE);
+    }
+
+    ctx.fillStyle = GROUND_TOP_LINE;
+    ctx.fillRect(0, groundY, w, 2);
+    ctx.fillStyle = "rgba(37,99,235,0.3)";
+    ctx.fillRect(0, groundY + 2, w, 1);
+
+    ctx.fillStyle = GROUND_DARK;
+    ctx.fillRect(0, groundY + TILE, w, h - groundY - TILE);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.03)";
     ctx.lineWidth = 0.5;
     for (let c = startCol; c <= endCol; c++) {
       const sx = c * TILE - camX;
       ctx.beginPath();
       ctx.moveTo(sx + 0.5, 0);
-      ctx.lineTo(sx + 0.5, h);
+      ctx.lineTo(sx + 0.5, groundY);
       ctx.stroke();
     }
-    for (let r = 0; r <= ROWS; r++) {
+    for (let r = 0; r < ROWS - 1; r++) {
       ctx.beginPath();
       ctx.moveTo(0, r * TILE + 0.5);
       ctx.lineTo(w, r * TILE + 0.5);
       ctx.stroke();
     }
-
-    const groundY = (ROWS - 1) * TILE;
-    ctx.fillStyle = GROUND_COLOR;
-    ctx.fillRect(0, groundY, w, TILE);
-    ctx.fillStyle = GROUND_LINE_COLOR;
-    ctx.fillRect(0, groundY, w, 2);
 
     for (const obj of objects) {
       const screenObjX = obj.x * TILE - camX;
@@ -186,6 +285,8 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    attemptFlashRef.current = performance.now();
 
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -236,52 +337,56 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
 
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        drawLevel(ctx, camX);
+        drawLevel(ctx, camX, time);
         drawPlayer(ctx, p, camX);
 
-        const progress = Math.min(100, (camX / (COLS * TILE - VIEWPORT_W)) * 100);
+        const progress = Math.min(100, (camX / Math.max(1, COLS * TILE - VIEWPORT_W)) * 100);
 
-        ctx.fillStyle = "rgba(0,0,0,0.5)";
-        ctx.fillRect(0, 0, 180, 56);
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        const modeLabel = p.mode.toUpperCase();
-        const color = MODE_COLORS[p.mode];
-        ctx.fillStyle = color;
-        ctx.fillText(`${modeLabel}`, 8, 6);
-        ctx.fillStyle = "#9ca3af";
-        ctx.fillText(`${p.speedMultiplier.toFixed(1)}x  ${stateRef.current.elapsed.toFixed(1)}s`, 8, 20);
-        ctx.fillText(`Att: ${attemptsRef.current}  ${progress.toFixed(0)}%`, 8, 34);
+        const barW = 240;
+        const barH = 6;
+        const barX = (canvas.width - barW) / 2;
+        const barY = 12;
 
-        const barY = 48;
-        const barW = 164;
-        ctx.fillStyle = "rgba(255,255,255,0.1)";
-        ctx.fillRect(8, barY, barW, 4);
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        roundRect(ctx, barX, barY, barW, barH, 3);
+        ctx.fill();
+
         ctx.fillStyle = "#4ade80";
-        ctx.fillRect(8, barY, barW * (progress / 100), 4);
+        if (progress > 0) {
+          roundRect(ctx, barX, barY, barW * (progress / 100), barH, 3);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = "rgba(255,255,255,0.5)";
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(`${progress.toFixed(0)}%`, canvas.width / 2, barY + barH + 4);
+
+        const attemptAge = (time - attemptFlashRef.current) / 1000;
+        if (attemptAge < 1.5 && !p.dead) {
+          const fadeAlpha = attemptAge < 0.3 ? attemptAge / 0.3 : attemptAge > 1.0 ? 1 - (attemptAge - 1.0) / 0.5 : 1;
+          ctx.fillStyle = `rgba(255,255,255,${fadeAlpha * 0.7})`;
+          ctx.font = "bold 18px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`Attempt ${attemptsRef.current}`, canvas.width / 2, canvas.height * 0.4);
+        }
 
         if (p.dead) {
           if (deathTimeRef.current === 0) {
             deathTimeRef.current = time;
           }
           const deathElapsed = (time - deathTimeRef.current) / 1000;
-          const flashAlpha = Math.min(0.7, deathElapsed * 3);
 
-          ctx.fillStyle = `rgba(239,68,68,${flashAlpha})`;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          if (deathElapsed > 0.15) {
-            ctx.fillStyle = "#fff";
-            ctx.font = "bold 28px monospace";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2 - 14);
-            ctx.font = "12px monospace";
-            ctx.fillStyle = "#fca5a5";
-            ctx.fillText(`Attempt ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 12);
+          if (deathElapsed < 0.15) {
+            ctx.fillStyle = `rgba(255,255,255,${(1 - deathElapsed / 0.15) * 0.8})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
           }
+
+          const flashAlpha = Math.min(0.6, deathElapsed * 2);
+          ctx.fillStyle = `rgba(180,30,30,${flashAlpha})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           if (deathElapsed > 0.6) {
             restart();
@@ -289,24 +394,23 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         }
 
         if (p.won) {
-          ctx.fillStyle = "rgba(34,197,94,0.7)";
+          ctx.fillStyle = "rgba(0,0,0,0.5)";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           ctx.fillStyle = "#fff";
-          ctx.font = "bold 32px monospace";
+          ctx.font = "bold 36px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
-          ctx.font = "14px monospace";
-          ctx.fillStyle = "#bbf7d0";
-          ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(2)}s  Attempts: ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 15);
-          ctx.fillText("Esc to return to editor", canvas.width / 2, canvas.height / 2 + 35);
-        }
+          ctx.fillText("Level Complete!", canvas.width / 2, canvas.height / 2 - 30);
 
-        ctx.fillStyle = "rgba(255,255,255,0.25)";
-        ctx.font = "9px monospace";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "top";
-        ctx.fillText("ESC=edit  R=restart  Space/Click=jump", canvas.width - 8, 6);
+          ctx.font = "16px sans-serif";
+          ctx.fillStyle = "#bbf7d0";
+          ctx.fillText(`${stateRef.current.elapsed.toFixed(2)}s  |  ${attemptsRef.current} attempt${attemptsRef.current > 1 ? "s" : ""}`, canvas.width / 2, canvas.height / 2 + 10);
+
+          ctx.font = "12px sans-serif";
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.fillText("Press Esc to return to editor", canvas.width / 2, canvas.height / 2 + 40);
+        }
       }
 
       animRef.current = requestAnimationFrame(loop);
@@ -326,7 +430,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   }, [objects, onStop, drawLevel, drawPlayer, startMode, restart]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center", background: "#000" }}>
       <canvas
         ref={canvasRef}
         width={VIEWPORT_W}
@@ -339,11 +443,31 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
           aspectRatio: `${VIEWPORT_W} / ${VIEWPORT_H}`,
           cursor: "pointer",
           outline: "none",
-          background: "#0a0a1a",
-          borderRadius: "4px",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "#000428",
         }}
       />
     </div>
   );
+}
+
+function shadeColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + percent));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + percent));
+  const b = Math.min(255, Math.max(0, (num & 0x0000ff) + percent));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
