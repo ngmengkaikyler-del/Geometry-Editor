@@ -10,7 +10,15 @@ export type BuiltinObjectType =
   | "speed_normal"
   | "speed_fast"
   | "speed_vfast"
-  | "speed_sfast";
+  | "speed_sfast"
+  | "gm_cube"
+  | "gm_cube_mini"
+  | "gm_ball"
+  | "gm_ball_mini"
+  | "gm_ufo"
+  | "gm_ufo_mini"
+  | "gm_robot"
+  | "gm_robot_mini";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
-import { isBuiltinType, SPEED_DATA } from "../objectDefs";
+import { isBuiltinType, SPEED_DATA, GAMEMODE_DATA } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
@@ -24,6 +24,14 @@ const BUILTIN_HINTS: Record<string, string> = {
   speed_fast: `Fast (${SPEED_DATA.speed_fast.multiplier}) \u2014 ${SPEED_DATA.speed_fast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_fast.blocksPerSec} blocks/s`,
   speed_vfast: `V.Fast (${SPEED_DATA.speed_vfast.multiplier}) \u2014 ${SPEED_DATA.speed_vfast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_vfast.blocksPerSec} blocks/s`,
   speed_sfast: `S.Fast (${SPEED_DATA.speed_sfast.multiplier}) \u2014 ${SPEED_DATA.speed_sfast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_sfast.blocksPerSec} blocks/s`,
+  gm_cube: `Cube (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_cube.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_cube.gravity}`,
+  gm_cube_mini: `Cube (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_cube_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_cube_mini.gravity}`,
+  gm_ball: `Ball (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_ball.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ball.gravity}`,
+  gm_ball_mini: `Ball (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_ball_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ball_mini.gravity}`,
+  gm_ufo: `UFO (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_ufo.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ufo.gravity}`,
+  gm_ufo_mini: `UFO (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_ufo_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ufo_mini.gravity}`,
+  gm_robot: `Robot (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_robot.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot.maxHold}s`,
+  gm_robot_mini: `Robot (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_robot_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot_mini.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot_mini.maxHold}s`,
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 
