@@ -20,6 +20,11 @@ const TOOL_ICONS: Record<string, string> = {
   coin: "\u25CF",
   ring: "\u25CB",
   orb: "\u25C8",
+  speed_slow: "\u25C7",
+  speed_normal: "\u25C6",
+  speed_fast: "\u25B6\u25B6",
+  speed_vfast: "\u25B6\u25B6\u25B6",
+  speed_sfast: "\u2726",
   eraser: "\u2715",
 };
 
@@ -31,6 +36,11 @@ const TOOL_COLORS: Record<string, string> = {
   coin: "#f59e0b",
   ring: "#f97316",
   orb: "#16a34a",
+  speed_slow: "#3b82f6",
+  speed_normal: "#22c55e",
+  speed_fast: "#f59e0b",
+  speed_vfast: "#ef4444",
+  speed_sfast: "#a855f7",
   eraser: "#6b7280",
 };
 
@@ -88,7 +98,7 @@ export function Toolbar({
         }}
       />
 
-      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", alignItems: "flex-end" }}>
         {TOOLBAR_ITEMS.map((type) => {
           const isEraser = type === "eraser";
           const label = isEraser ? "Eraser" : OBJECT_DEFS[type as BuiltinObjectType]?.label ?? type;
@@ -105,8 +115,8 @@ export function Toolbar({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "58px",
-                height: "52px",
+                width: "52px",
+                height: "48px",
                 border: isActive
                   ? `2px solid ${color}`
                   : "2px solid rgba(255,255,255,0.1)",

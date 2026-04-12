@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
-import { isBuiltinType } from "../objectDefs";
+import { isBuiltinType, SPEED_DATA } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
@@ -19,6 +19,11 @@ const BUILTIN_HINTS: Record<string, string> = {
   coin: "Left-click to place coins | Right-click to delete",
   ring: "Left-click to place rings | Right-click to delete",
   orb: "Left-click to place orbs | Right-click to delete",
+  speed_slow: `Slow (${SPEED_DATA.speed_slow.multiplier}) \u2014 ${SPEED_DATA.speed_slow.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_slow.blocksPerSec} blocks/s`,
+  speed_normal: `Normal (${SPEED_DATA.speed_normal.multiplier}) \u2014 ${SPEED_DATA.speed_normal.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_normal.blocksPerSec} blocks/s`,
+  speed_fast: `Fast (${SPEED_DATA.speed_fast.multiplier}) \u2014 ${SPEED_DATA.speed_fast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_fast.blocksPerSec} blocks/s`,
+  speed_vfast: `V.Fast (${SPEED_DATA.speed_vfast.multiplier}) \u2014 ${SPEED_DATA.speed_vfast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_vfast.blocksPerSec} blocks/s`,
+  speed_sfast: `S.Fast (${SPEED_DATA.speed_sfast.multiplier}) \u2014 ${SPEED_DATA.speed_sfast.unitsPerSec} u/s \u2248 ${SPEED_DATA.speed_sfast.blocksPerSec} blocks/s`,
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 

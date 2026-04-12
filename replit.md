@@ -35,7 +35,8 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - **Features**:
   - 60x20 tile-based grid canvas (HTML Canvas)
   - Click or drag to place/erase objects
-  - 7 built-in object types: Block, Spike, Platform, Portal, Coin, Ring, Orb
+  - 12 built-in object types: Block, Spike, Platform, Portal, Coin, Ring, Orb, + 5 speed changers (Slow/Normal/Fast/V.Fast/S.Fast)
+  - Speed changers: diamond-shaped portals with GD-accurate speed values (units/sec and blocks/sec)
   - Custom image uploads (PNG): uploaded images get unique IDs and appear in a sidebar
   - Custom images persisted in IndexedDB (`gd-level-editor-assets` DB) — survive page reloads
   - Clicking a custom image in the sidebar selects it as the current tool

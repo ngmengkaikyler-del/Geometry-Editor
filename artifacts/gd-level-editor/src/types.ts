@@ -5,7 +5,12 @@ export type BuiltinObjectType =
   | "portal"
   | "coin"
   | "ring"
-  | "orb";
+  | "orb"
+  | "speed_slow"
+  | "speed_normal"
+  | "speed_fast"
+  | "speed_vfast"
+  | "speed_sfast";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 
