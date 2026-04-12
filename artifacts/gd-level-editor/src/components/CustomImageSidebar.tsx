@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import type { CustomImage, ToolType } from "../types";
+import { processImageFile } from "../lib/processImageFile";
 
 interface CustomImageSidebarProps {
   images: CustomImage[];
@@ -8,12 +9,6 @@ interface CustomImageSidebarProps {
   onAddImage: (image: CustomImage) => void;
   onRemoveImage: (id: string) => void;
   loading?: boolean;
-}
-
-let nextId = 1;
-
-function generateId(): string {
-  return `custom_${Date.now()}_${nextId++}`;
 }
 
 export function CustomImageSidebar({
@@ -26,27 +21,15 @@ export function CustomImageSidebar({
 }: CustomImageSidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/png")) {
-      alert("Only PNG images are supported.");
-      return;
+    try {
+      const img = await processImageFile(file);
+      onAddImage(img);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to load image");
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const img = new Image();
-      img.onload = () => {
-        const id = generateId();
-        const name = file.name.replace(/\.png$/i, "");
-        onAddImage({ id, name, dataUrl, image: img });
-      };
-      img.src = dataUrl;
-    };
-    reader.readAsDataURL(file);
-
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
