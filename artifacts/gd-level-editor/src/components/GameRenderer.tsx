@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import type { LevelObject, CustomImage } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 import type { GameState, PlayableMode } from "../lib/gameEngine";
-import { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, PLAYER_SCREEN_X, stepGame, createInitialState } from "../lib/gameEngine";
+import { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, stepGame, createInitialState, VIEWPORT_W, VIEWPORT_H } from "../lib/gameEngine";
 
 interface GameRendererProps {
   objects: LevelObject[];
@@ -24,6 +24,9 @@ const MODE_SHAPES: Record<PlayableMode, string> = {
   spider: "diamond",
   wave: "slash",
 };
+
+const GROUND_COLOR = "#1e3a5f";
+const GROUND_LINE_COLOR = "#4a90d9";
 
 export function GameRenderer({ objects, customImages, startMode, onStop }: GameRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,6 +66,17 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const py = sy + PLAYER_OFFSET;
 
     ctx.save();
+
+    const rotation = (p.mode === "cube" && !p.grounded) ? (p.vy * 0.003) : 0;
+
+    if (rotation !== 0) {
+      const cx = px + PLAYER_W / 2;
+      const cy = py + PLAYER_H / 2;
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      ctx.translate(-cx, -cy);
+    }
+
     ctx.fillStyle = color;
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
@@ -71,12 +85,14 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       case "square":
         ctx.fillRect(px, py, PLAYER_W, PLAYER_H);
         ctx.strokeRect(px, py, PLAYER_W, PLAYER_H);
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fillRect(px + PLAYER_W * 0.3, py + PLAYER_W * 0.25, PLAYER_W * 0.4, PLAYER_H * 0.35);
         break;
       case "triangle": {
         ctx.beginPath();
-        ctx.moveTo(px + PLAYER_W / 2, py);
-        ctx.lineTo(px + PLAYER_W, py + PLAYER_H);
+        ctx.moveTo(px + PLAYER_W, py + PLAYER_H * 0.5);
         ctx.lineTo(px, py + PLAYER_H);
+        ctx.lineTo(px, py);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
@@ -119,19 +135,23 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const h = ctx.canvas.height;
     const imgMap = imgMapRef.current;
 
-    ctx.fillStyle = "#0f0f23";
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, "#0a0a1a");
+    grad.addColorStop(0.6, "#0d1025");
+    grad.addColorStop(1, "#111833");
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
     const startCol = Math.max(0, Math.floor(camX / TILE));
     const endCol = Math.min(COLS, Math.ceil((camX + w) / TILE) + 1);
 
-    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.lineWidth = 0.5;
     for (let c = startCol; c <= endCol; c++) {
       const sx = c * TILE - camX;
       ctx.beginPath();
       ctx.moveTo(sx + 0.5, 0);
-      ctx.lineTo(sx + 0.5, ROWS * TILE);
+      ctx.lineTo(sx + 0.5, h);
       ctx.stroke();
     }
     for (let r = 0; r <= ROWS; r++) {
@@ -140,6 +160,12 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       ctx.lineTo(w, r * TILE + 0.5);
       ctx.stroke();
     }
+
+    const groundY = (ROWS - 1) * TILE;
+    ctx.fillStyle = GROUND_COLOR;
+    ctx.fillRect(0, groundY, w, TILE);
+    ctx.fillStyle = GROUND_LINE_COLOR;
+    ctx.fillRect(0, groundY, w, 2);
 
     for (const obj of objects) {
       const screenObjX = obj.x * TILE - camX;
@@ -213,8 +239,10 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         drawLevel(ctx, camX);
         drawPlayer(ctx, p, camX);
 
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.fillRect(0, 0, 200, 62);
+        const progress = Math.min(100, (camX / (COLS * TILE - VIEWPORT_W)) * 100);
+
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, 180, 56);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 11px monospace";
         ctx.textAlign = "left";
@@ -222,11 +250,17 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         const modeLabel = p.mode.toUpperCase();
         const color = MODE_COLORS[p.mode];
         ctx.fillStyle = color;
-        ctx.fillText(`Mode: ${modeLabel}`, 8, 6);
+        ctx.fillText(`${modeLabel}`, 8, 6);
         ctx.fillStyle = "#9ca3af";
-        ctx.fillText(`Speed: ${p.speedMultiplier.toFixed(1)}x`, 8, 20);
-        ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(1)}s`, 8, 34);
-        ctx.fillText(`Attempt: ${attemptsRef.current}`, 8, 48);
+        ctx.fillText(`${p.speedMultiplier.toFixed(1)}x  ${stateRef.current.elapsed.toFixed(1)}s`, 8, 20);
+        ctx.fillText(`Att: ${attemptsRef.current}  ${progress.toFixed(0)}%`, 8, 34);
+
+        const barY = 48;
+        const barW = 164;
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.fillRect(8, barY, barW, 4);
+        ctx.fillStyle = "#4ade80";
+        ctx.fillRect(8, barY, barW * (progress / 100), 4);
 
         if (p.dead) {
           if (deathTimeRef.current === 0) {
@@ -240,13 +274,13 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
 
           if (deathElapsed > 0.15) {
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 24px monospace";
+            ctx.font = "bold 28px monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2 - 14);
-            ctx.font = "11px monospace";
+            ctx.font = "12px monospace";
             ctx.fillStyle = "#fca5a5";
-            ctx.fillText(`Attempt ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 8);
+            ctx.fillText(`Attempt ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 12);
           }
 
           if (deathElapsed > 0.6) {
@@ -258,21 +292,21 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
           ctx.fillStyle = "rgba(34,197,94,0.7)";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.fillStyle = "#fff";
-          ctx.font = "bold 28px monospace";
+          ctx.font = "bold 32px monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
           ctx.font = "14px monospace";
           ctx.fillStyle = "#bbf7d0";
-          ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(2)}s`, canvas.width / 2, canvas.height / 2 + 15);
+          ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(2)}s  Attempts: ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 15);
           ctx.fillText("Esc to return to editor", canvas.width / 2, canvas.height / 2 + 35);
         }
 
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.font = "10px monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.font = "9px monospace";
         ctx.textAlign = "right";
         ctx.textBaseline = "top";
-        ctx.fillText("ESC = edit | R = restart | Space/Click = action", canvas.width - 8, 6);
+        ctx.fillText("ESC=edit  R=restart  Space/Click=jump", canvas.width - 8, 6);
       }
 
       animRef.current = requestAnimationFrame(loop);
@@ -292,19 +326,22 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   }, [objects, onStop, drawLevel, drawPlayer, startMode, restart]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
       <canvas
         ref={canvasRef}
-        width={COLS * TILE}
-        height={ROWS * TILE}
+        width={VIEWPORT_W}
+        height={VIEWPORT_H}
         tabIndex={0}
         style={{
           display: "block",
           width: "100%",
-          maxHeight: "calc(100vh - 120px)",
+          maxWidth: `${VIEWPORT_W}px`,
+          aspectRatio: `${VIEWPORT_W} / ${VIEWPORT_H}`,
           cursor: "pointer",
           outline: "none",
-          background: "#0f0f23",
+          background: "#0a0a1a",
+          borderRadius: "4px",
+          border: "1px solid rgba(255,255,255,0.08)",
         }}
       />
     </div>

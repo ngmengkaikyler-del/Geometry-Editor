@@ -354,11 +354,11 @@ export interface SpeedInfo {
 }
 
 export const SPEED_DATA: Record<string, SpeedInfo> = {
-  speed_slow:   { multiplier: "0.5x", unitsPerSec: 251.25, blocksPerSec: 8.375 },
-  speed_normal: { multiplier: "1x",  unitsPerSec: 311.58, blocksPerSec: 10.386 },
-  speed_fast:   { multiplier: "2x",  unitsPerSec: 387.42, blocksPerSec: 12.914 },
-  speed_vfast:  { multiplier: "3x",  unitsPerSec: 468.00, blocksPerSec: 15.6 },
-  speed_sfast:  { multiplier: "4x",  unitsPerSec: 576.00, blocksPerSec: 19.2 },
+  speed_slow:   { multiplier: "0.8x", unitsPerSec: 251.25, blocksPerSec: 6.8 },
+  speed_normal: { multiplier: "1x",   unitsPerSec: 311.58, blocksPerSec: 8.5 },
+  speed_fast:   { multiplier: "1.25x", unitsPerSec: 387.42, blocksPerSec: 10.6 },
+  speed_vfast:  { multiplier: "1.6x", unitsPerSec: 468.00, blocksPerSec: 13.6 },
+  speed_sfast:  { multiplier: "2x",   unitsPerSec: 576.00, blocksPerSec: 17 },
 };
 
 export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {

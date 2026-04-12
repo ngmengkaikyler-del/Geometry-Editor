@@ -2,9 +2,9 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import type { LevelObject, ToolType, CustomImage } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 
-const TILE_SIZE = 32;
-const GRID_COLS = 60;
-const GRID_ROWS = 20;
+const TILE_SIZE = 40;
+const GRID_COLS = 200;
+const GRID_ROWS = 10;
 const HEADER_HEIGHT = 24;
 
 const GAMEMODE_TYPES = new Set<string>([
@@ -52,11 +52,11 @@ const SPEED_COLOR_MAP: Record<string, string> = {
 };
 
 const SPEED_LABEL_MAP: Record<string, string> = {
-  speed_slow: "0.5x",
+  speed_slow: "0.8x",
   speed_normal: "1x",
-  speed_fast: "2x",
-  speed_vfast: "3x",
-  speed_sfast: "4x",
+  speed_fast: "1.25x",
+  speed_vfast: "1.6x",
+  speed_sfast: "2x",
 };
 
 interface LevelEditorProps {

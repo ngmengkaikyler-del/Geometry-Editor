@@ -2,25 +2,29 @@ import type { LevelObject } from "../types";
 
 export type PlayableMode = "cube" | "ship" | "spider" | "wave";
 
-const TILE = 32;
-const COLS = 60;
-const ROWS = 20;
+const TILE = 40;
+const COLS = 200;
+const ROWS = 10;
 
-const BASE_SCROLL_SPEED = 150;
+const VIEWPORT_W = 960;
+const VIEWPORT_H = ROWS * TILE;
+const GROUND_Y = (ROWS - 1) * TILE;
 
-const GRAVITY = 1800;
-const JUMP_VY = -580;
-const SHIP_THRUST = -1400;
-const SHIP_GRAVITY = 900;
-const SHIP_MAX_VY = 400;
+const BASE_SCROLL_SPEED = 340;
+
+const GRAVITY = 2800;
+const JUMP_VY = -900;
+const SHIP_THRUST = -2200;
+const SHIP_GRAVITY = 1400;
+const SHIP_MAX_VY = 500;
 const WAVE_VY_RATIO = 1;
 
 const SPEED_MULTIPLIERS: Record<string, number> = {
-  speed_slow: 0.5,
+  speed_slow: 0.8,
   speed_normal: 1,
-  speed_fast: 2,
-  speed_vfast: 3,
-  speed_sfast: 4,
+  speed_fast: 1.25,
+  speed_vfast: 1.6,
+  speed_sfast: 2,
 };
 
 const GAMEMODE_MAP: Record<string, PlayableMode> = {
@@ -90,13 +94,17 @@ function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
   return { solids, hazards, portals };
 }
 
-const PLAYER_SCREEN_X = 140;
+const PLAYER_SCREEN_X = 160;
+
+const PLAYER_W = TILE * 0.85;
+const PLAYER_H = TILE * 0.85;
+const PLAYER_OFFSET = (TILE - PLAYER_W) / 2;
 
 export function createInitialState(startMode: PlayableMode): GameState {
   return {
     player: {
       worldX: PLAYER_SCREEN_X,
-      y: (ROWS - 2) * TILE,
+      y: GROUND_Y - PLAYER_H - PLAYER_OFFSET,
       vy: 0,
       mode: startMode,
       grounded: false,
@@ -111,10 +119,6 @@ export function createInitialState(startMode: PlayableMode): GameState {
     elapsed: 0,
   };
 }
-
-const PLAYER_W = TILE * 0.8;
-const PLAYER_H = TILE * 0.8;
-const PLAYER_OFFSET = (TILE - PLAYER_W) / 2;
 
 function isSolid(grid: CollisionGrid, px: number, py: number, w: number, h: number): boolean {
   const left = Math.floor(px / TILE);
@@ -182,10 +186,10 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
 
   targetCamX += scrollSpeed * realDt;
 
-  const maxCameraX = Math.max(0, worldW - COLS * TILE * 0.5);
+  const maxCameraX = Math.max(0, worldW - VIEWPORT_W);
   targetCamX = Math.min(targetCamX, maxCameraX);
 
-  const lerpFactor = 1 - Math.pow(0.001, realDt);
+  const lerpFactor = 1 - Math.pow(0.0001, realDt);
   camX += (targetCamX - camX) * lerpFactor;
   camX = Math.max(0, Math.min(camX, maxCameraX));
 
@@ -273,8 +277,9 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     p.y = -PLAYER_OFFSET;
     if (p.vy < 0) p.vy = 0;
   }
-  if (by + PLAYER_H > worldH) {
-    p.y = worldH - PLAYER_H - PLAYER_OFFSET;
+
+  if (by + PLAYER_H > GROUND_Y) {
+    p.y = GROUND_Y - PLAYER_H - PLAYER_OFFSET;
     if (p.vy > 0) p.vy = 0;
     if (p.mode === "cube" || p.mode === "spider") {
       p.grounded = true;
@@ -300,4 +305,4 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   };
 }
 
-export { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, PLAYER_SCREEN_X };
+export { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, PLAYER_SCREEN_X, VIEWPORT_W, VIEWPORT_H };
