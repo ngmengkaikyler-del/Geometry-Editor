@@ -271,14 +271,13 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
 
   if (by < 0) {
     p.y = -PLAYER_OFFSET;
-    p.vy = Math.max(0, p.vy);
+    if (p.vy < 0) p.vy = 0;
   }
   if (by + PLAYER_H > worldH) {
-    if (p.mode === "wave" || p.mode === "ship") {
-      p.y = worldH - PLAYER_H - PLAYER_OFFSET;
-      p.vy = 0;
-    } else {
-      p.dead = true;
+    p.y = worldH - PLAYER_H - PLAYER_OFFSET;
+    if (p.vy > 0) p.vy = 0;
+    if (p.mode === "cube" || p.mode === "spider") {
+      p.grounded = true;
     }
   }
 
