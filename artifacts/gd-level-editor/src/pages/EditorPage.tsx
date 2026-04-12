@@ -46,6 +46,8 @@ export default function EditorPage() {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [levelName, setLevelName] = useState("Untitled Level");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [syncTime, setSyncTime] = useState(false);
+  const [currentMusicTime, setCurrentMusicTime] = useState(0);
   const dragCounterRef = useRef(0);
 
   useEffect(() => {
@@ -58,6 +60,14 @@ export default function EditorPage() {
       .catch(() => {
         setAssetsLoaded(true);
       });
+  }, []);
+
+  const handleTimeUpdate = useCallback((time: number) => {
+    setCurrentMusicTime(time);
+  }, []);
+
+  const handleSyncTimeToggle = useCallback(() => {
+    setSyncTime((prev) => !prev);
   }, []);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -163,12 +173,22 @@ export default function EditorPage() {
       deleteMusicTrack(musicTrack.id).catch(() => {});
     }
     setMusicTrack(null);
+    setCurrentMusicTime(0);
+    setSyncTime(false);
   }, [musicTrack]);
 
   const getHint = (): string => {
-    if (BUILTIN_HINTS[selectedTool]) return BUILTIN_HINTS[selectedTool];
+    if (BUILTIN_HINTS[selectedTool]) {
+      const base = BUILTIN_HINTS[selectedTool];
+      if (syncTime) return `${base} | SYNC: objects stamped at ${currentMusicTime.toFixed(1)}s`;
+      return base;
+    }
     const custom = customImages.find((img) => img.id === selectedTool);
-    if (custom) return `Left-click to place "${custom.name}" | Right-click to delete`;
+    if (custom) {
+      const base = `Left-click to place "${custom.name}" | Right-click to delete`;
+      if (syncTime) return `${base} | SYNC: ${currentMusicTime.toFixed(1)}s`;
+      return base;
+    }
     return "Select a tool";
   };
 
@@ -287,6 +307,8 @@ export default function EditorPage() {
             objects={objects}
             onObjectsChange={setObjects}
             customImages={customImages}
+            syncTime={syncTime}
+            currentMusicTime={currentMusicTime}
           />
         </div>
       </div>
@@ -294,6 +316,9 @@ export default function EditorPage() {
         track={musicTrack}
         onUpload={handleUploadMusic}
         onRemove={handleRemoveMusic}
+        onTimeUpdate={handleTimeUpdate}
+        syncTime={syncTime}
+        onSyncTimeToggle={handleSyncTimeToggle}
       />
       <StatusBar selectedTool={toolLabel()} hintText={getHint()} />
     </div>

@@ -49,6 +49,8 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - Music support: upload MP3/WAV, play/pause controls, seekable timeline/progress bar
   - Music persisted in IndexedDB (`gd-level-editor-music` DB), single-track semantics
   - Music info (ID + filename) included in level.json; audio file bundled in ZIP exports
+  - Timing/sync support: SYNC toggle stamps placed objects with current playback time
+  - Objects with time values show purple badges on canvas; time field included in exports
   - Dark Geometry Dash-themed UI
 - **Key files**:
   - `src/types.ts` — TypeScript types (ToolType, LevelObject, CustomImage)

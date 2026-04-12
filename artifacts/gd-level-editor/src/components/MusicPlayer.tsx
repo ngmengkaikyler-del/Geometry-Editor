@@ -5,15 +5,26 @@ interface MusicPlayerProps {
   track: MusicTrack | null;
   onUpload: (track: MusicTrack) => void;
   onRemove: () => void;
+  onTimeUpdate?: (time: number) => void;
+  syncTime: boolean;
+  onSyncTimeToggle: () => void;
 }
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
+  const ms = Math.floor((seconds % 1) * 10);
+  return `${m}:${s.toString().padStart(2, "0")}.${ms}`;
 }
 
-export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
+export function MusicPlayer({
+  track,
+  onUpload,
+  onRemove,
+  onTimeUpdate,
+  syncTime,
+  onSyncTimeToggle,
+}: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,6 +52,7 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
         cancelAnimationFrame(animFrameRef.current);
         setIsPlaying(false);
         setCurrentTime(0);
+        onTimeUpdate?.(0);
       });
     }
 
@@ -55,10 +67,12 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
 
   const updateTime = useCallback(() => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
+      const t = audioRef.current.currentTime;
+      setCurrentTime(t);
+      onTimeUpdate?.(t);
     }
     animFrameRef.current = requestAnimationFrame(updateTime);
-  }, []);
+  }, [onTimeUpdate]);
 
   const togglePlay = useCallback(() => {
     if (!audioRef.current) return;
@@ -78,8 +92,10 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
     const rect = progressRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     audioRef.current.currentTime = ratio * audioRef.current.duration;
-    setCurrentTime(audioRef.current.currentTime);
-  }, []);
+    const t = audioRef.current.currentTime;
+    setCurrentTime(t);
+    onTimeUpdate?.(t);
+  }, [onTimeUpdate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,7 +203,7 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
               color: "#d1d5db",
               fontSize: "11px",
               fontFamily: "monospace",
-              maxWidth: "120px",
+              maxWidth: "100px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -204,7 +220,7 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
               fontSize: "10px",
               fontFamily: "monospace",
               flexShrink: 0,
-              width: "36px",
+              width: "44px",
               textAlign: "right",
             }}
           >
@@ -222,7 +238,7 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
               cursor: "pointer",
               position: "relative",
               overflow: "hidden",
-              minWidth: "80px",
+              minWidth: "60px",
             }}
           >
             <div
@@ -245,11 +261,32 @@ export function MusicPlayer({ track, onUpload, onRemove }: MusicPlayerProps) {
               fontSize: "10px",
               fontFamily: "monospace",
               flexShrink: 0,
-              width: "36px",
+              width: "44px",
             }}
           >
             {formatTime(duration)}
           </span>
+
+          <button
+            onClick={onSyncTimeToggle}
+            title={syncTime ? "Disable time sync — objects won't be stamped with playback time" : "Enable time sync — stamp objects with current playback time"}
+            style={{
+              padding: "3px 8px",
+              background: syncTime ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.04)",
+              border: syncTime ? "1px solid rgba(34,197,94,0.5)" : "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "4px",
+              color: syncTime ? "#4ade80" : "#6b7280",
+              cursor: "pointer",
+              fontSize: "9px",
+              fontFamily: "monospace",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              flexShrink: 0,
+              transition: "all 0.15s ease",
+            }}
+          >
+            {syncTime ? "SYNC ON" : "SYNC"}
+          </button>
 
           <button
             onClick={onRemove}

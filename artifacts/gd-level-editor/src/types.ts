@@ -13,6 +13,7 @@ export interface LevelObject {
   x: number;
   y: number;
   type: string;
+  time?: number;
 }
 
 export interface ObjectDef {

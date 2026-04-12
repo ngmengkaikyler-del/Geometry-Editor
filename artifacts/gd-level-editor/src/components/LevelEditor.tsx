@@ -11,9 +11,24 @@ interface LevelEditorProps {
   objects: LevelObject[];
   onObjectsChange: (objects: LevelObject[]) => void;
   customImages: CustomImage[];
+  syncTime: boolean;
+  currentMusicTime: number;
 }
 
-export function LevelEditor({ selectedTool, objects, onObjectsChange, customImages }: LevelEditorProps) {
+function formatTimeBadge(t: number): string {
+  const s = Math.floor(t);
+  const ms = Math.floor((t % 1) * 10);
+  return `${s}.${ms}s`;
+}
+
+export function LevelEditor({
+  selectedTool,
+  objects,
+  onObjectsChange,
+  customImages,
+  syncTime,
+  currentMusicTime,
+}: LevelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawing = useRef(false);
@@ -80,6 +95,22 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange, customImag
             ctx.fillText("?", px + TILE_SIZE / 2, py + TILE_SIZE / 2);
           }
         }
+
+        if (obj.time !== undefined) {
+          const label = formatTimeBadge(obj.time);
+          ctx.font = "bold 7px monospace";
+          const tw = ctx.measureText(label).width + 4;
+          const bx = px + TILE_SIZE - tw - 1;
+          const by = py + 1;
+          ctx.fillStyle = "rgba(124,58,237,0.85)";
+          ctx.beginPath();
+          ctx.roundRect(bx, by, tw, 10, 2);
+          ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(label, bx + tw / 2, by + 5);
+        }
       }
 
       if (hoverCell) {
@@ -142,13 +173,14 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange, customImag
       }
       const exists = objects.some((o) => o.x === col && o.y === row);
       if (!exists) {
-        onObjectsChange([
-          ...objects,
-          { x: col, y: row, type: selectedTool },
-        ]);
+        const newObj: LevelObject = { x: col, y: row, type: selectedTool };
+        if (syncTime) {
+          newObj.time = Math.round(currentMusicTime * 100) / 100;
+        }
+        onObjectsChange([...objects, newObj]);
       }
     },
-    [selectedTool, objects, onObjectsChange]
+    [selectedTool, objects, onObjectsChange, syncTime, currentMusicTime]
   );
 
   const deleteAt = useCallback(
