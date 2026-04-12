@@ -38,18 +38,24 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange, customImag
       ctx.fillStyle = "#1a1a2e";
       ctx.fillRect(0, 0, w, h);
 
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
       ctx.lineWidth = 0.5;
       for (let c = 0; c <= GRID_COLS; c++) {
+        const isMajor = c % 5 === 0;
+        ctx.strokeStyle = isMajor ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)";
+        ctx.lineWidth = isMajor ? 1 : 0.5;
         ctx.beginPath();
-        ctx.moveTo(c * TILE_SIZE, 0);
-        ctx.lineTo(c * TILE_SIZE, h);
+        ctx.moveTo(c * TILE_SIZE + 0.5, 0);
+        ctx.lineTo(c * TILE_SIZE + 0.5, h);
         ctx.stroke();
       }
       for (let r = 0; r <= GRID_ROWS; r++) {
+        const isMajor = r % 5 === 0;
+        ctx.strokeStyle = isMajor ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)";
+        ctx.lineWidth = isMajor ? 1 : 0.5;
         ctx.beginPath();
-        ctx.moveTo(0, r * TILE_SIZE);
-        ctx.lineTo(w, r * TILE_SIZE);
+        ctx.moveTo(0, r * TILE_SIZE + 0.5);
+        ctx.lineTo(w, r * TILE_SIZE + 0.5);
         ctx.stroke();
       }
 
@@ -145,11 +151,27 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange, customImag
     [selectedTool, objects, onObjectsChange]
   );
 
+  const deleteAt = useCallback(
+    (col: number, row: number) => {
+      onObjectsChange(objects.filter((o) => !(o.x === col && o.y === row)));
+    },
+    [objects, onObjectsChange]
+  );
+
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button === 2) {
+      const cell = cellFromEvent(e);
+      if (cell) deleteAt(cell.col, cell.row);
+      return;
+    }
     if (e.button !== 0) return;
     isDrawing.current = true;
     const cell = cellFromEvent(e);
     if (cell) applyTool(cell.col, cell.row);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -183,6 +205,7 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange, customImag
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
         style={{ display: "block", cursor: selectedTool === "eraser" ? "crosshair" : "cell" }}
       />
     </div>

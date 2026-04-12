@@ -8,14 +8,14 @@ import { CustomImageSidebar } from "../components/CustomImageSidebar";
 import { saveAsset, deleteAsset, loadAllAssets } from "../lib/assetStore";
 
 const BUILTIN_HINTS: Record<string, string> = {
-  block: "Click or drag to place blocks",
-  spike: "Click or drag to place spikes - they kill the player",
-  platform: "Click or drag to place half-height platforms",
-  portal: "Click or drag to place mode-swap portals",
-  coin: "Click or drag to place collectible coins",
-  ring: "Click or drag to place jump rings",
-  orb: "Click or drag to place dash orbs",
-  eraser: "Click or drag to erase objects",
+  block: "Left-click to place blocks | Right-click to delete",
+  spike: "Left-click to place spikes | Right-click to delete",
+  platform: "Left-click to place platforms | Right-click to delete",
+  portal: "Left-click to place portals | Right-click to delete",
+  coin: "Left-click to place coins | Right-click to delete",
+  ring: "Left-click to place rings | Right-click to delete",
+  orb: "Left-click to place orbs | Right-click to delete",
+  eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 
 export default function EditorPage() {
@@ -79,7 +79,7 @@ export default function EditorPage() {
   const getHint = (): string => {
     if (BUILTIN_HINTS[selectedTool]) return BUILTIN_HINTS[selectedTool];
     const custom = customImages.find((img) => img.id === selectedTool);
-    if (custom) return `Click or drag to place "${custom.name}"`;
+    if (custom) return `Left-click to place "${custom.name}" | Right-click to delete`;
     return "Select a tool";
   };
 
