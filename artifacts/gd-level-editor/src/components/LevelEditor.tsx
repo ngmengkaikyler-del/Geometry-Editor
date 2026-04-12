@@ -5,6 +5,55 @@ import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 const TILE_SIZE = 32;
 const GRID_COLS = 60;
 const GRID_ROWS = 20;
+const HEADER_HEIGHT = 24;
+
+const GAMEMODE_TYPES = new Set<string>([
+  "gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini",
+  "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini",
+]);
+
+const SPEED_TYPES = new Set<string>([
+  "speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast",
+]);
+
+type GamemodeKind = "cube" | "ball" | "ufo" | "robot";
+
+const GAMEMODE_KIND_MAP: Record<string, GamemodeKind> = {
+  gm_cube: "cube", gm_cube_mini: "cube",
+  gm_ball: "ball", gm_ball_mini: "ball",
+  gm_ufo: "ufo", gm_ufo_mini: "ufo",
+  gm_robot: "robot", gm_robot_mini: "robot",
+};
+
+const GAMEMODE_COLORS: Record<GamemodeKind, string> = {
+  cube: "#22d3ee",
+  ball: "#f97316",
+  ufo: "#a78bfa",
+  robot: "#6ee7b7",
+};
+
+const GAMEMODE_ICONS: Record<GamemodeKind, string> = {
+  cube: "\u25A0",
+  ball: "\u25CF",
+  ufo: "\u2666",
+  robot: "\u2699",
+};
+
+const SPEED_COLOR_MAP: Record<string, string> = {
+  speed_slow: "#3b82f6",
+  speed_normal: "#22c55e",
+  speed_fast: "#f59e0b",
+  speed_vfast: "#ef4444",
+  speed_sfast: "#a855f7",
+};
+
+const SPEED_LABEL_MAP: Record<string, string> = {
+  speed_slow: "0.5x",
+  speed_normal: "1x",
+  speed_fast: "2x",
+  speed_vfast: "3x",
+  speed_sfast: "4x",
+};
 
 interface LevelEditorProps {
   selectedTool: ToolType;
@@ -19,6 +68,50 @@ function formatTimeBadge(t: number): string {
   const s = Math.floor(t);
   const ms = Math.floor((t % 1) * 10);
   return `${s}.${ms}s`;
+}
+
+interface ZoneInfo {
+  gamemode: GamemodeKind;
+  isMini: boolean;
+  speed: string;
+}
+
+function computeZones(objects: LevelObject[]): ZoneInfo[] {
+  const zones: ZoneInfo[] = Array.from({ length: GRID_COLS }, () => ({
+    gamemode: "cube" as GamemodeKind,
+    isMini: false,
+    speed: "speed_normal",
+  }));
+
+  const portalsByCol: { col: number; type: string }[] = [];
+  for (const obj of objects) {
+    if (GAMEMODE_TYPES.has(obj.type) || SPEED_TYPES.has(obj.type)) {
+      portalsByCol.push({ col: obj.x, type: obj.type });
+    }
+  }
+  portalsByCol.sort((a, b) => a.col - b.col);
+
+  let currentGamemode: GamemodeKind = "cube";
+  let currentMini = false;
+  let currentSpeed = "speed_normal";
+
+  let portalIdx = 0;
+
+  for (let col = 0; col < GRID_COLS; col++) {
+    while (portalIdx < portalsByCol.length && portalsByCol[portalIdx].col === col) {
+      const p = portalsByCol[portalIdx];
+      if (GAMEMODE_TYPES.has(p.type)) {
+        currentGamemode = GAMEMODE_KIND_MAP[p.type];
+        currentMini = p.type.endsWith("_mini");
+      } else if (SPEED_TYPES.has(p.type)) {
+        currentSpeed = p.type;
+      }
+      portalIdx++;
+    }
+    zones[col] = { gamemode: currentGamemode, isMini: currentMini, speed: currentSpeed };
+  }
+
+  return zones;
 }
 
 export function LevelEditor({
@@ -45,13 +138,133 @@ export function LevelEditor({
   const drawGrid = useCallback(
     (ctx: CanvasRenderingContext2D) => {
       const w = GRID_COLS * TILE_SIZE;
-      const h = GRID_ROWS * TILE_SIZE;
+      const totalH = HEADER_HEIGHT + GRID_ROWS * TILE_SIZE;
       const imgMap = customImageMap();
 
-      ctx.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, totalH);
+
+      const zones = computeZones(objects);
+
+      ctx.fillStyle = "#0d0d1a";
+      ctx.fillRect(0, 0, w, HEADER_HEIGHT);
+
+      const gmStripH = 14;
+      const speedStripH = HEADER_HEIGHT - gmStripH;
+
+      let prevGM: GamemodeKind | null = null;
+      let prevMini: boolean | null = null;
+      let zoneStartCol = 0;
+
+      const drawGmZone = (startCol: number, endCol: number, gm: GamemodeKind, mini: boolean) => {
+        const x1 = startCol * TILE_SIZE;
+        const x2 = endCol * TILE_SIZE;
+        const color = GAMEMODE_COLORS[gm];
+        ctx.fillStyle = color + "25";
+        ctx.fillRect(x1, 0, x2 - x1, gmStripH);
+        ctx.fillStyle = color + "60";
+        ctx.fillRect(x1, gmStripH - 1, x2 - x1, 1);
+
+        const zoneMidX = (x1 + x2) / 2;
+        const zoneW = x2 - x1;
+        if (zoneW > 30) {
+          ctx.font = "bold 8px monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = color;
+          const label = GAMEMODE_ICONS[gm] + " " + gm.toUpperCase() + (mini ? " m" : "");
+          ctx.fillText(label, zoneMidX, gmStripH / 2);
+        }
+
+        if (startCol > 0) {
+          ctx.strokeStyle = color + "80";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x1 + 0.5, 0);
+          ctx.lineTo(x1 + 0.5, gmStripH);
+          ctx.stroke();
+        }
+      };
+
+      for (let col = 0; col < GRID_COLS; col++) {
+        const z = zones[col];
+        if (prevGM === null) {
+          prevGM = z.gamemode;
+          prevMini = z.isMini;
+          zoneStartCol = col;
+        } else if (z.gamemode !== prevGM || z.isMini !== prevMini) {
+          drawGmZone(zoneStartCol, col, prevGM, prevMini!);
+          prevGM = z.gamemode;
+          prevMini = z.isMini;
+          zoneStartCol = col;
+        }
+      }
+      if (prevGM !== null) {
+        drawGmZone(zoneStartCol, GRID_COLS, prevGM, prevMini!);
+      }
+
+      let prevSpeed: string | null = null;
+      let speedStartCol = 0;
+
+      const drawSpeedZone = (startCol: number, endCol: number, speed: string) => {
+        const x1 = startCol * TILE_SIZE;
+        const x2 = endCol * TILE_SIZE;
+        const color = SPEED_COLOR_MAP[speed] ?? "#22c55e";
+        ctx.fillStyle = color + "20";
+        ctx.fillRect(x1, gmStripH, x2 - x1, speedStripH);
+
+        const zoneMidX = (x1 + x2) / 2;
+        const zoneW = x2 - x1;
+        if (zoneW > 24) {
+          ctx.font = "bold 7px monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = color + "cc";
+          ctx.fillText(SPEED_LABEL_MAP[speed] ?? "1x", zoneMidX, gmStripH + speedStripH / 2);
+        }
+
+        if (startCol > 0) {
+          ctx.strokeStyle = color + "60";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x1 + 0.5, gmStripH);
+          ctx.lineTo(x1 + 0.5, HEADER_HEIGHT);
+          ctx.stroke();
+        }
+      };
+
+      for (let col = 0; col < GRID_COLS; col++) {
+        const z = zones[col];
+        if (prevSpeed === null) {
+          prevSpeed = z.speed;
+          speedStartCol = col;
+        } else if (z.speed !== prevSpeed) {
+          drawSpeedZone(speedStartCol, col, prevSpeed);
+          prevSpeed = z.speed;
+          speedStartCol = col;
+        }
+      }
+      if (prevSpeed !== null) {
+        drawSpeedZone(speedStartCol, GRID_COLS, prevSpeed);
+      }
+
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, HEADER_HEIGHT + 0.5);
+      ctx.lineTo(w, HEADER_HEIGHT + 0.5);
+      ctx.stroke();
+
+      const oY = HEADER_HEIGHT;
 
       ctx.fillStyle = "#1a1a2e";
-      ctx.fillRect(0, 0, w, h);
+      ctx.fillRect(0, oY, w, GRID_ROWS * TILE_SIZE);
+
+      for (let col = 0; col < GRID_COLS; col++) {
+        const z = zones[col];
+        const color = GAMEMODE_COLORS[z.gamemode];
+        ctx.fillStyle = color + "08";
+        ctx.fillRect(col * TILE_SIZE, oY, TILE_SIZE, GRID_ROWS * TILE_SIZE);
+      }
 
       ctx.strokeStyle = "rgba(255,255,255,0.12)";
       ctx.lineWidth = 0.5;
@@ -60,8 +273,8 @@ export function LevelEditor({
         ctx.strokeStyle = isMajor ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)";
         ctx.lineWidth = isMajor ? 1 : 0.5;
         ctx.beginPath();
-        ctx.moveTo(c * TILE_SIZE + 0.5, 0);
-        ctx.lineTo(c * TILE_SIZE + 0.5, h);
+        ctx.moveTo(c * TILE_SIZE + 0.5, oY);
+        ctx.lineTo(c * TILE_SIZE + 0.5, oY + GRID_ROWS * TILE_SIZE);
         ctx.stroke();
       }
       for (let r = 0; r <= GRID_ROWS; r++) {
@@ -69,14 +282,14 @@ export function LevelEditor({
         ctx.strokeStyle = isMajor ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)";
         ctx.lineWidth = isMajor ? 1 : 0.5;
         ctx.beginPath();
-        ctx.moveTo(0, r * TILE_SIZE + 0.5);
-        ctx.lineTo(w, r * TILE_SIZE + 0.5);
+        ctx.moveTo(0, oY + r * TILE_SIZE + 0.5);
+        ctx.lineTo(w, oY + r * TILE_SIZE + 0.5);
         ctx.stroke();
       }
 
       for (const obj of objects) {
         const px = obj.x * TILE_SIZE;
-        const py = obj.y * TILE_SIZE;
+        const py = oY + obj.y * TILE_SIZE;
 
         if (isBuiltinType(obj.type)) {
           const def = OBJECT_DEFS[obj.type];
@@ -116,7 +329,7 @@ export function LevelEditor({
       if (hoverCell) {
         const { col, row } = hoverCell;
         const hx = col * TILE_SIZE;
-        const hy = row * TILE_SIZE;
+        const hy = oY + row * TILE_SIZE;
 
         if (selectedTool === "eraser") {
           ctx.fillStyle = "rgba(239,68,68,0.25)";
@@ -159,8 +372,8 @@ export function LevelEditor({
     const scaleY = canvas.height / rect.height;
     const px = (e.clientX - rect.left) * scaleX;
     const py = (e.clientY - rect.top) * scaleY;
+    const row = Math.floor((py - HEADER_HEIGHT) / TILE_SIZE);
     const col = Math.floor(px / TILE_SIZE);
-    const row = Math.floor(py / TILE_SIZE);
     if (col < 0 || col >= GRID_COLS || row < 0 || row >= GRID_ROWS) return null;
     return { col, row };
   };
@@ -232,7 +445,7 @@ export function LevelEditor({
       <canvas
         ref={canvasRef}
         width={GRID_COLS * TILE_SIZE}
-        height={GRID_ROWS * TILE_SIZE}
+        height={HEADER_HEIGHT + GRID_ROWS * TILE_SIZE}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
