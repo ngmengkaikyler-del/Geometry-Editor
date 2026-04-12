@@ -5,8 +5,11 @@ interface ToolbarProps {
   selected: ToolType;
   onSelect: (tool: ToolType) => void;
   objectCount: number;
+  levelName: string;
+  onLevelNameChange: (name: string) => void;
   onClear: () => void;
-  onExport: () => void;
+  onExportJson: () => void;
+  onExportZip: () => void;
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -31,7 +34,16 @@ const TOOL_COLORS: Record<string, string> = {
   eraser: "#6b7280",
 };
 
-export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: ToolbarProps) {
+export function Toolbar({
+  selected,
+  onSelect,
+  objectCount,
+  levelName,
+  onLevelNameChange,
+  onClear,
+  onExportJson,
+  onExportZip,
+}: ToolbarProps) {
   return (
     <div
       style={{
@@ -50,12 +62,31 @@ export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: 
           fontWeight: 700,
           fontSize: "15px",
           letterSpacing: "0.05em",
-          marginRight: "8px",
+          marginRight: "4px",
           fontFamily: "monospace",
         }}
       >
         GD EDITOR
       </span>
+
+      <input
+        type="text"
+        value={levelName}
+        onChange={(e) => onLevelNameChange(e.target.value)}
+        placeholder="Level name..."
+        style={{
+          width: "140px",
+          padding: "5px 8px",
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          borderRadius: "5px",
+          color: "#e5e7eb",
+          fontSize: "11px",
+          fontFamily: "monospace",
+          outline: "none",
+          marginRight: "4px",
+        }}
+      />
 
       <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
         {TOOLBAR_ITEMS.map((type) => {
@@ -149,8 +180,32 @@ export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: 
           Clear
         </button>
         <button
-          onClick={onExport}
-          title="Export level.json"
+          onClick={onExportJson}
+          title="Export level.json only"
+          style={{
+            padding: "7px 12px",
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: "6px",
+            color: "#d1d5db",
+            cursor: "pointer",
+            fontSize: "11px",
+            fontFamily: "monospace",
+            fontWeight: 600,
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+          }}
+        >
+          JSON
+        </button>
+        <button
+          onClick={onExportZip}
+          title="Download ZIP with level.json, assets.json, and image files"
           style={{
             padding: "7px 16px",
             background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
@@ -172,7 +227,7 @@ export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: 
             (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 12px rgba(124,58,237,0.3)";
           }}
         >
-          Export JSON
+          Export ZIP
         </button>
       </div>
     </div>

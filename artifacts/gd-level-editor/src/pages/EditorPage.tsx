@@ -6,6 +6,7 @@ import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
 import { CustomImageSidebar } from "../components/CustomImageSidebar";
 import { saveAsset, deleteAsset, loadAllAssets } from "../lib/assetStore";
+import { exportLevelZip, exportLevelJsonOnly } from "../lib/exportLevel";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Left-click to place blocks | Right-click to delete",
@@ -23,6 +24,7 @@ export default function EditorPage() {
   const [objects, setObjects] = useState<LevelObject[]>([]);
   const [customImages, setCustomImages] = useState<CustomImage[]>([]);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [levelName, setLevelName] = useState("Untitled Level");
 
   useEffect(() => {
     loadAllAssets()
@@ -35,22 +37,13 @@ export default function EditorPage() {
       });
   }, []);
 
-  const handleExport = useCallback(() => {
-    const data = {
-      version: "1.0",
-      gridSize: 32,
-      cols: 60,
-      rows: 20,
-      objects,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "level.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [objects]);
+  const handleExportJson = useCallback(() => {
+    exportLevelJsonOnly(levelName, objects, customImages);
+  }, [levelName, objects, customImages]);
+
+  const handleExportZip = useCallback(() => {
+    exportLevelZip(levelName, objects, customImages);
+  }, [levelName, objects, customImages]);
 
   const handleClear = useCallback(() => {
     if (objects.length === 0) return;
@@ -103,8 +96,11 @@ export default function EditorPage() {
         selected={selectedTool}
         onSelect={setSelectedTool}
         objectCount={objects.length}
+        levelName={levelName}
+        onLevelNameChange={setLevelName}
         onClear={handleClear}
-        onExport={handleExport}
+        onExportJson={handleExportJson}
+        onExportZip={handleExportZip}
       />
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <CustomImageSidebar
