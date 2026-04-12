@@ -67,7 +67,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
 
     ctx.save();
 
-    const rotation = (p.mode === "cube" && !p.grounded) ? (p.vy * 0.003) : 0;
+    const rotation = p.rotation;
 
     if (rotation !== 0) {
       const cx = px + PLAYER_W / 2;

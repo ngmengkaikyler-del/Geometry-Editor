@@ -49,6 +49,8 @@ export interface PlayerState {
   dead: boolean;
   won: boolean;
   speedMultiplier: number;
+  rotation: number;
+  targetRotation: number;
 }
 
 export interface GameState {
@@ -111,6 +113,8 @@ export function createInitialState(startMode: PlayableMode): GameState {
       dead: false,
       won: false,
       speedMultiplier: 1,
+      rotation: 0,
+      targetRotation: 0,
     },
     cameraX: 0,
     targetCameraX: 0,
@@ -201,6 +205,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
       if (holding && p.grounded) {
         p.vy = JUMP_VY;
         p.grounded = false;
+        p.targetRotation += Math.PI / 2;
       }
       break;
     }
@@ -283,6 +288,15 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     if (p.vy > 0) p.vy = 0;
     if (p.mode === "cube" || p.mode === "spider") {
       p.grounded = true;
+    }
+  }
+
+  if (p.mode === "cube") {
+    if (!p.grounded) {
+      const rotLerp = 1 - Math.pow(0.00001, realDt);
+      p.rotation += (p.targetRotation - p.rotation) * rotLerp;
+    } else {
+      p.rotation = p.targetRotation;
     }
   }
 
