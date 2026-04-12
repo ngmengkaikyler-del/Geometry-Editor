@@ -257,7 +257,7 @@ export default function EditorPage() {
             Start: {startMode.toUpperCase()}
           </span>
           <span style={{ color: "#6b7280", fontSize: "11px", fontFamily: "monospace" }}>
-            Space/Click = action | Esc = back to editor
+            Space/Click = action | R = restart | Esc = back to editor
           </span>
           <button
             onClick={() => setIsPlaying(false)}

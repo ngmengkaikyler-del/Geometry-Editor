@@ -32,6 +32,17 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const cameraXRef = useRef(0);
+  const deathTimeRef = useRef<number>(0);
+  const attemptsRef = useRef(1);
+
+  const restart = useCallback(() => {
+    stateRef.current = createInitialState(startMode);
+    holdingRef.current = false;
+    cameraXRef.current = 0;
+    lastTimeRef.current = 0;
+    deathTimeRef.current = 0;
+    attemptsRef.current++;
+  }, [startMode]);
 
   const imgMapRef = useRef<Map<string, CustomImage>>(new Map());
   useEffect(() => {
@@ -158,6 +169,10 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         onStop();
         return;
       }
+      if (e.key === "r" || e.key === "R") {
+        restart();
+        return;
+      }
       if (e.repeat) return;
       if (e.key === " " || e.key === "ArrowUp" || e.code === "Space") {
         e.preventDefault();
@@ -218,22 +233,28 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(1)}s`, 8, 34);
 
         if (p.dead) {
-          ctx.fillStyle = "rgba(239,68,68,0.7)";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 28px monospace";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2 - 20);
-          ctx.font = "14px monospace";
-          ctx.fillStyle = "#fca5a5";
-          ctx.fillText("Click or press Space to retry | Esc to edit", canvas.width / 2, canvas.height / 2 + 15);
+          if (deathTimeRef.current === 0) {
+            deathTimeRef.current = time;
+          }
+          const deathElapsed = (time - deathTimeRef.current) / 1000;
+          const flashAlpha = Math.min(0.7, deathElapsed * 3);
 
-          if (holdingRef.current) {
-            stateRef.current = createInitialState(stateRef.current.player.mode === p.mode ? p.mode : "cube");
-            stateRef.current = createInitialState(startMode);
-            holdingRef.current = false;
-            cameraXRef.current = 0;
+          ctx.fillStyle = `rgba(239,68,68,${flashAlpha})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          if (deathElapsed > 0.15) {
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 24px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("DEAD", canvas.width / 2, canvas.height / 2 - 14);
+            ctx.font = "11px monospace";
+            ctx.fillStyle = "#fca5a5";
+            ctx.fillText(`Attempt ${attemptsRef.current}`, canvas.width / 2, canvas.height / 2 + 8);
+          }
+
+          if (deathElapsed > 0.6) {
+            restart();
           }
         }
 
@@ -255,7 +276,12 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.font = "10px monospace";
         ctx.textAlign = "right";
         ctx.textBaseline = "top";
-        ctx.fillText("ESC = edit | Space/Click = action", canvas.width - 8, 6);
+        ctx.fillText("ESC = edit | R = restart | Space/Click = action", canvas.width - 8, 6);
+
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.font = "10px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`Attempt: ${attemptsRef.current}`, 8, 48);
       }
 
       animRef.current = requestAnimationFrame(loop);
@@ -272,7 +298,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       canvas.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [objects, onStop, drawLevel, drawPlayer, startMode]);
+  }, [objects, onStop, drawLevel, drawPlayer, startMode, restart]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
