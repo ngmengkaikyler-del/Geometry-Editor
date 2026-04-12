@@ -35,6 +35,9 @@ const TOOL_ICONS: Record<string, string> = {
   gm_robot_mini: "\u2699",
   gm_wave: "\u2215",
   gm_wave_mini: "\u2215",
+  orb_dash_green: "\u2192",
+  orb_dash_pink: "\u2192",
+  orb_spider: "\u2195",
   eraser: "\u2715",
 };
 
@@ -61,6 +64,9 @@ const TOOL_COLORS: Record<string, string> = {
   gm_robot_mini: "#6ee7b7",
   gm_wave: "#facc15",
   gm_wave_mini: "#facc15",
+  orb_dash_green: "#4ade80",
+  orb_dash_pink: "#f472b6",
+  orb_spider: "#6b7280",
   eraser: "#6b7280",
 };
 

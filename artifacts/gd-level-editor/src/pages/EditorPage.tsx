@@ -34,6 +34,9 @@ const BUILTIN_HINTS: Record<string, string> = {
   gm_robot_mini: `Robot (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_robot_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot_mini.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot_mini.maxHold}s`,
   gm_wave: `Wave (Big) \u2014 45\u00B0 angle | Vy = Vx (1:1 ratio) | Hold=up, Release=down`,
   gm_wave_mini: `Wave (Mini) \u2014 63.43\u00B0 angle | Vy = 2\u00D7Vx (2:1 ratio) | 2x sensitivity`,
+  orb_dash_green: "Dash Orb (Green) \u2014 Vy=0 while held, horizontal travel only | Gravity resumes on release",
+  orb_dash_pink: "Dash Orb (Pink) \u2014 Vy=0 while held | Flips gravity on release (g = -g)",
+  orb_spider: "Spider Orb \u2014 Raycast to nearest surface, teleport in 1 frame, flip gravity",
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 

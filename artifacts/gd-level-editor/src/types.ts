@@ -20,7 +20,10 @@ export type BuiltinObjectType =
   | "gm_robot"
   | "gm_robot_mini"
   | "gm_wave"
-  | "gm_wave_mini";
+  | "gm_wave_mini"
+  | "orb_dash_green"
+  | "orb_dash_pink"
+  | "orb_spider";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 

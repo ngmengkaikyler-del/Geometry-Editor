@@ -240,6 +240,74 @@ function drawWaveModeMini(ctx: CanvasRenderingContext2D, x: number, y: number, s
   drawGamemodePortal(ctx, x, y, size, "#facc15", "#a16207", "\u2215", true);
 }
 
+function drawOrbDashGreen(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const r = size / 2 - 3;
+  const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 1, cx, cy, r);
+  grad.addColorStop(0, "#bbf7d0");
+  grad.addColorStop(0.5, "#4ade80");
+  grad.addColorStop(1, "#166534");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#15803d";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = "#fff";
+  ctx.font = `bold ${Math.floor(size * 0.32)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("\u2192", cx, cy);
+}
+
+function drawOrbDashPink(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const r = size / 2 - 3;
+  const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 1, cx, cy, r);
+  grad.addColorStop(0, "#fce7f3");
+  grad.addColorStop(0.5, "#f472b6");
+  grad.addColorStop(1, "#9d174d");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#be185d";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = "#fff";
+  ctx.font = `bold ${Math.floor(size * 0.32)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("\u2192", cx, cy);
+  ctx.font = `bold ${Math.floor(size * 0.18)}px sans-serif`;
+  ctx.fillText("\u21C5", cx + r * 0.55, cy - r * 0.45);
+}
+
+function drawOrbSpider(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const r = size / 2 - 3;
+  const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 1, cx, cy, r);
+  grad.addColorStop(0, "#e5e7eb");
+  grad.addColorStop(0.5, "#6b7280");
+  grad.addColorStop(1, "#1f2937");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#374151";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = "#fff";
+  ctx.font = `bold ${Math.floor(size * 0.28)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("\u2195", cx, cy);
+}
+
 export interface GamemodeInfo {
   jumpForce: number;
   gravity: number;
@@ -298,6 +366,9 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   gm_robot_mini: { label: "Robot M",   color: "#6ee7b7", render: drawRobotModeMini },
   gm_wave:       { label: "Wave",      color: "#facc15", render: drawWaveMode },
   gm_wave_mini:  { label: "Wave M",    color: "#facc15", render: drawWaveModeMini },
+  orb_dash_green: { label: "Dash G",   color: "#4ade80", render: drawOrbDashGreen },
+  orb_dash_pink:  { label: "Dash P",   color: "#f472b6", render: drawOrbDashPink },
+  orb_spider:     { label: "Spider",   color: "#6b7280", render: drawOrbSpider },
 };
 
 export const BUILTIN_TYPES: BuiltinObjectType[] = [
@@ -306,10 +377,12 @@ export const BUILTIN_TYPES: BuiltinObjectType[] = [
   "gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini",
   "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini",
   "gm_wave", "gm_wave_mini",
+  "orb_dash_green", "orb_dash_pink", "orb_spider",
 ];
 
 export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
-  { label: "Objects", items: ["block", "spike", "platform", "portal", "coin", "ring", "orb"] },
+  { label: "Objects", items: ["block", "spike", "platform", "portal", "coin", "ring"] },
+  { label: "Orbs", items: ["orb", "orb_dash_green", "orb_dash_pink", "orb_spider"] },
   { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
   { label: "Gamemode", items: ["gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini", "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini", "gm_wave", "gm_wave_mini"] },
   { label: "", items: ["eraser"] },
