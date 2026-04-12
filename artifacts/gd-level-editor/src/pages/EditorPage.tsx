@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { LevelObject, ToolType, CustomImage } from "../types";
 import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
 import { CustomImageSidebar } from "../components/CustomImageSidebar";
+import { saveAsset, deleteAsset, loadAllAssets } from "../lib/assetStore";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Click or drag to place blocks",
@@ -21,6 +22,18 @@ export default function EditorPage() {
   const [selectedTool, setSelectedTool] = useState<ToolType>("block");
   const [objects, setObjects] = useState<LevelObject[]>([]);
   const [customImages, setCustomImages] = useState<CustomImage[]>([]);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+
+  useEffect(() => {
+    loadAllAssets()
+      .then((images) => {
+        setCustomImages(images);
+        setAssetsLoaded(true);
+      })
+      .catch(() => {
+        setAssetsLoaded(true);
+      });
+  }, []);
 
   const handleExport = useCallback(() => {
     const data = {
@@ -48,12 +61,14 @@ export default function EditorPage() {
 
   const handleAddImage = useCallback((image: CustomImage) => {
     setCustomImages((prev) => [...prev, image]);
+    saveAsset(image).catch(() => {});
   }, []);
 
   const handleRemoveImage = useCallback(
     (id: string) => {
       setCustomImages((prev) => prev.filter((img) => img.id !== id));
       setObjects((prev) => prev.filter((obj) => obj.type !== id));
+      deleteAsset(id).catch(() => {});
       if (selectedTool === id) {
         setSelectedTool("block");
       }
@@ -98,6 +113,7 @@ export default function EditorPage() {
           onSelectTool={setSelectedTool}
           onAddImage={handleAddImage}
           onRemoveImage={handleRemoveImage}
+          loading={!assetsLoaded}
         />
         <div
           style={{

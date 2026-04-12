@@ -37,6 +37,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - Click or drag to place/erase objects
   - 7 built-in object types: Block, Spike, Platform, Portal, Coin, Ring, Orb
   - Custom image uploads (PNG): uploaded images get unique IDs and appear in a sidebar
+  - Custom images persisted in IndexedDB (`gd-level-editor-assets` DB) — survive page reloads
   - Clicking a custom image in the sidebar selects it as the current tool
   - Custom images placed on grid are stored as `{ x, y, type: "custom_id" }` — no image data in level.json
   - Toolbar for built-in tool selection with visual preview
@@ -50,5 +51,6 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - `src/components/LevelEditor.tsx` — Main canvas grid component (renders both built-in and custom objects)
   - `src/components/Toolbar.tsx` — Built-in tool selection toolbar
   - `src/components/CustomImageSidebar.tsx` — Sidebar for uploading/selecting custom PNG images
+  - `src/lib/assetStore.ts` — IndexedDB persistence layer for custom image assets (save/load/delete)
   - `src/components/StatusBar.tsx` — Bottom status bar
   - `src/pages/EditorPage.tsx` — Root page with state management

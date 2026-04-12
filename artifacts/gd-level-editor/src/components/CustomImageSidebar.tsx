@@ -7,6 +7,7 @@ interface CustomImageSidebarProps {
   onSelectTool: (tool: ToolType) => void;
   onAddImage: (image: CustomImage) => void;
   onRemoveImage: (id: string) => void;
+  loading?: boolean;
 }
 
 let nextId = 1;
@@ -21,6 +22,7 @@ export function CustomImageSidebar({
   onSelectTool,
   onAddImage,
   onRemoveImage,
+  loading,
 }: CustomImageSidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -126,7 +128,21 @@ export function CustomImageSidebar({
           gap: "4px",
         }}
       >
-        {images.length === 0 && (
+        {loading && (
+          <div
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontSize: "10px",
+              fontFamily: "monospace",
+              textAlign: "center",
+              padding: "20px 8px",
+            }}
+          >
+            Loading assets...
+          </div>
+        )}
+
+        {!loading && images.length === 0 && (
           <div
             style={{
               color: "rgba(255,255,255,0.2)",
