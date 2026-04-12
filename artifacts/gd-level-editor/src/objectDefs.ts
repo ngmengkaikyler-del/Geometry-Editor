@@ -314,7 +314,25 @@ export interface GamemodeInfo {
   maxHold?: number;
   angle?: number;
   vyRatio?: number;
+  smoothingDelay?: number;
+  inputLatency?: number;
+  vyScalesWithSpeed?: boolean;
 }
+
+export interface WaveSpeedProfile {
+  speed: string;
+  vx: number;
+  vy: number;
+  vyMini: number;
+}
+
+export const WAVE_SPEED_PROFILES: WaveSpeedProfile[] = [
+  { speed: "Slow (0.5x)",   vx: 251.25, vy: 251.25, vyMini: 502.50 },
+  { speed: "Normal (1x)",   vx: 311.58, vy: 311.58, vyMini: 623.16 },
+  { speed: "Fast (2x)",     vx: 387.42, vy: 387.42, vyMini: 774.84 },
+  { speed: "V.Fast (3x)",   vx: 468.00, vy: 468.00, vyMini: 936.00 },
+  { speed: "S.Fast (4x)",   vx: 576.00, vy: 576.00, vyMini: 1152.00 },
+];
 
 export const GAMEMODE_DATA: Record<string, GamemodeInfo> = {
   gm_cube:       { jumpForce: 94.0408, gravity: 20.3755 },

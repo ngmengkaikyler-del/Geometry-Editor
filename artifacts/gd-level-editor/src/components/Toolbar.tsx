@@ -1,5 +1,8 @@
 import type { ToolType, BuiltinObjectType } from "../types";
 import { TOOLBAR_GROUPS, OBJECT_DEFS } from "../objectDefs";
+import type { PlayableMode } from "../lib/gameEngine";
+
+const START_MODES: PlayableMode[] = ["cube", "ship", "spider", "wave"];
 
 interface ToolbarProps {
   selected: ToolType;
@@ -10,6 +13,9 @@ interface ToolbarProps {
   onClear: () => void;
   onExportJson: () => void;
   onExportZip: () => void;
+  startMode: PlayableMode;
+  onStartModeChange: (mode: PlayableMode) => void;
+  onPlay: () => void;
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -79,6 +85,9 @@ export function Toolbar({
   onClear,
   onExportJson,
   onExportZip,
+  startMode,
+  onStartModeChange,
+  onPlay,
 }: ToolbarProps) {
   return (
     <div
@@ -224,6 +233,55 @@ export function Toolbar({
       </div>
 
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <span style={{ color: "#6b7280", fontSize: "9px", fontFamily: "monospace" }}>START:</span>
+          <select
+            value={startMode}
+            onChange={(e) => onStartModeChange(e.target.value as PlayableMode)}
+            style={{
+              padding: "3px 4px",
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: "4px",
+              color: "#d1d5db",
+              fontSize: "10px",
+              fontFamily: "monospace",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          >
+            {START_MODES.map((m) => (
+              <option key={m} value={m} style={{ background: "#1a1a2e" }}>
+                {m.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={onPlay}
+          title="Play level (test)"
+          style={{
+            padding: "5px 14px",
+            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            border: "1px solid rgba(74,222,128,0.4)",
+            borderRadius: "5px",
+            color: "#fff",
+            cursor: "pointer",
+            fontSize: "11px",
+            fontFamily: "monospace",
+            fontWeight: 700,
+            letterSpacing: "0.03em",
+            boxShadow: "0 0 12px rgba(34,197,94,0.3)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 20px rgba(34,197,94,0.5)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 12px rgba(34,197,94,0.3)";
+          }}
+        >
+          PLAY
+        </button>
         <span style={{ color: "#6b7280", fontSize: "11px", fontFamily: "monospace" }}>
           {objectCount} obj
         </span>

@@ -41,6 +41,13 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
     - Gamemode: Cube, Cube Mini, Ball, Ball Mini, UFO, UFO Mini, Robot, Robot Mini, Wave, Wave Mini
   - Speed changers: diamond-shaped portals with GD-accurate speed values (units/sec and blocks/sec)
   - Gamemode portals: oval portals with icons, GD-accurate jump force/gravity/max hold values
+  - **Play Mode**: test levels in-browser with full game loop
+    - 4 playable gamemodes: Cube (click to jump), Ship (hold=up, release=down), Spider (click to teleport floor/ceiling), Wave (hold=diagonal up, release=diagonal down)
+    - Configurable startMode per level (cube/ship/spider/wave)
+    - Physics: gravity, collision detection, speed multipliers, gamemode portal triggers
+    - Camera follows player, HUD shows mode/speed/time
+    - Death on spikes/fall, win on reaching end of level
+    - Separate editor loop and game loop — only one runs at a time
   - Custom image uploads (PNG): uploaded images get unique IDs and appear in a sidebar
   - Custom images persisted in IndexedDB (`gd-level-editor-assets` DB) — survive page reloads
   - Clicking a custom image in the sidebar selects it as the current tool

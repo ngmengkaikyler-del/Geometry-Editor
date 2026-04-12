@@ -6,10 +6,12 @@ import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
 import { CustomImageSidebar } from "../components/CustomImageSidebar";
 import { MusicPlayer } from "../components/MusicPlayer";
+import { GameRenderer } from "../components/GameRenderer";
 import { saveAsset, deleteAsset, loadAllAssets } from "../lib/assetStore";
 import { saveMusicTrack, deleteMusicTrack, loadMusicTrack } from "../lib/musicStore";
 import { exportLevelZip, exportLevelJsonOnly } from "../lib/exportLevel";
 import { processImageFile } from "../lib/processImageFile";
+import type { PlayableMode } from "../lib/gameEngine";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Left-click to place blocks | Right-click to delete",
@@ -41,6 +43,7 @@ const BUILTIN_HINTS: Record<string, string> = {
 };
 
 const AUDIO_EXTENSIONS = ["mp3", "wav"];
+const START_MODES: PlayableMode[] = ["cube", "ship", "spider", "wave"];
 
 function isAudioFile(file: File): boolean {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -66,6 +69,8 @@ export default function EditorPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [syncTime, setSyncTime] = useState(false);
   const [currentMusicTime, setCurrentMusicTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [startMode, setStartMode] = useState<PlayableMode>("cube");
   const dragCounterRef = useRef(0);
 
   useEffect(() => {
@@ -216,6 +221,74 @@ export default function EditorPage() {
     return custom ? custom.name : selectedTool;
   };
 
+  if (isPlaying) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          background: "#0f0f23",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "8px 16px",
+            background: "rgba(15,15,35,0.95)",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <span
+            style={{
+              color: "#4ade80",
+              fontWeight: 700,
+              fontSize: "14px",
+              fontFamily: "monospace",
+              letterSpacing: "0.05em",
+            }}
+          >
+            PLAY MODE
+          </span>
+          <span style={{ color: "#6b7280", fontSize: "11px", fontFamily: "monospace" }}>
+            Start: {startMode.toUpperCase()}
+          </span>
+          <span style={{ color: "#6b7280", fontSize: "11px", fontFamily: "monospace" }}>
+            Space/Click = action | Esc = back to editor
+          </span>
+          <button
+            onClick={() => setIsPlaying(false)}
+            style={{
+              marginLeft: "auto",
+              padding: "5px 14px",
+              background: "rgba(239,68,68,0.15)",
+              border: "1px solid rgba(239,68,68,0.4)",
+              borderRadius: "5px",
+              color: "#f87171",
+              cursor: "pointer",
+              fontSize: "11px",
+              fontFamily: "monospace",
+              fontWeight: 700,
+            }}
+          >
+            STOP
+          </button>
+        </div>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <GameRenderer
+            objects={objects}
+            customImages={customImages}
+            startMode={startMode}
+            onStop={() => setIsPlaying(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onDragEnter={handleDragEnter}
@@ -290,6 +363,9 @@ export default function EditorPage() {
         onClear={handleClear}
         onExportJson={handleExportJson}
         onExportZip={handleExportZip}
+        startMode={startMode}
+        onStartModeChange={setStartMode}
+        onPlay={() => setIsPlaying(true)}
       />
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <CustomImageSidebar
