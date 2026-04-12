@@ -1,27 +1,37 @@
 import { useRef, useEffect, useCallback, useState } from "react";
-import type { LevelObject, ObjectType } from "../types";
-import { OBJECT_DEFS } from "../objectDefs";
+import type { LevelObject, ToolType, CustomImage } from "../types";
+import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 
 const TILE_SIZE = 32;
 const GRID_COLS = 60;
 const GRID_ROWS = 20;
 
 interface LevelEditorProps {
-  selectedTool: ObjectType;
+  selectedTool: ToolType;
   objects: LevelObject[];
   onObjectsChange: (objects: LevelObject[]) => void;
+  customImages: CustomImage[];
 }
 
-export function LevelEditor({ selectedTool, objects, onObjectsChange }: LevelEditorProps) {
+export function LevelEditor({ selectedTool, objects, onObjectsChange, customImages }: LevelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDrawing = useRef(false);
   const [hoverCell, setHoverCell] = useState<{ col: number; row: number } | null>(null);
 
+  const customImageMap = useCallback(() => {
+    const map = new Map<string, CustomImage>();
+    for (const img of customImages) {
+      map.set(img.id, img);
+    }
+    return map;
+  }, [customImages]);
+
   const drawGrid = useCallback(
     (ctx: CanvasRenderingContext2D) => {
       const w = GRID_COLS * TILE_SIZE;
       const h = GRID_ROWS * TILE_SIZE;
+      const imgMap = customImageMap();
 
       ctx.clearRect(0, 0, w, h);
 
@@ -44,29 +54,56 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange }: LevelEdi
       }
 
       for (const obj of objects) {
-        const def = OBJECT_DEFS[obj.type];
-        def.render(ctx, obj.x * TILE_SIZE, obj.y * TILE_SIZE, TILE_SIZE);
+        const px = obj.x * TILE_SIZE;
+        const py = obj.y * TILE_SIZE;
+
+        if (isBuiltinType(obj.type)) {
+          const def = OBJECT_DEFS[obj.type];
+          def.render(ctx, px, py, TILE_SIZE);
+        } else {
+          const custom = imgMap.get(obj.type);
+          if (custom) {
+            ctx.drawImage(custom.image, px, py, TILE_SIZE, TILE_SIZE);
+          } else {
+            ctx.fillStyle = "rgba(255,0,255,0.3)";
+            ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+            ctx.fillStyle = "#fff";
+            ctx.font = "8px monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("?", px + TILE_SIZE / 2, py + TILE_SIZE / 2);
+          }
+        }
       }
 
       if (hoverCell) {
         const { col, row } = hoverCell;
+        const hx = col * TILE_SIZE;
+        const hy = row * TILE_SIZE;
+
         if (selectedTool === "eraser") {
           ctx.fillStyle = "rgba(239,68,68,0.25)";
-        } else {
-          const def = OBJECT_DEFS[selectedTool as Exclude<ObjectType, "eraser">];
+          ctx.fillRect(hx, hy, TILE_SIZE, TILE_SIZE);
+        } else if (isBuiltinType(selectedTool)) {
+          const def = OBJECT_DEFS[selectedTool];
           ctx.fillStyle = `${def.color}44`;
-        }
-        ctx.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-
-        if (selectedTool !== "eraser") {
-          const def = OBJECT_DEFS[selectedTool as Exclude<ObjectType, "eraser">];
+          ctx.fillRect(hx, hy, TILE_SIZE, TILE_SIZE);
           ctx.globalAlpha = 0.5;
-          def.render(ctx, col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE);
+          def.render(ctx, hx, hy, TILE_SIZE);
           ctx.globalAlpha = 1;
+        } else {
+          const custom = imgMap.get(selectedTool);
+          if (custom) {
+            ctx.fillStyle = "rgba(167,139,250,0.2)";
+            ctx.fillRect(hx, hy, TILE_SIZE, TILE_SIZE);
+            ctx.globalAlpha = 0.5;
+            ctx.drawImage(custom.image, hx, hy, TILE_SIZE, TILE_SIZE);
+            ctx.globalAlpha = 1;
+          }
         }
       }
     },
-    [objects, hoverCell, selectedTool]
+    [objects, hoverCell, selectedTool, customImageMap]
   );
 
   useEffect(() => {
@@ -101,7 +138,7 @@ export function LevelEditor({ selectedTool, objects, onObjectsChange }: LevelEdi
       if (!exists) {
         onObjectsChange([
           ...objects,
-          { x: col, y: row, type: selectedTool as Exclude<ObjectType, "eraser"> },
+          { x: col, y: row, type: selectedTool },
         ]);
       }
     },

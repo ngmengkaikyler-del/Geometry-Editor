@@ -1,26 +1,26 @@
-import type { ObjectType } from "../types";
+import type { ToolType, BuiltinObjectType } from "../types";
 import { TOOLBAR_ITEMS, OBJECT_DEFS } from "../objectDefs";
 
 interface ToolbarProps {
-  selected: ObjectType;
-  onSelect: (tool: ObjectType) => void;
+  selected: ToolType;
+  onSelect: (tool: ToolType) => void;
   objectCount: number;
   onClear: () => void;
   onExport: () => void;
 }
 
-const TOOL_ICONS: Record<ObjectType, string> = {
-  block: "▪",
-  spike: "▲",
-  platform: "▬",
-  portal: "◉",
-  coin: "●",
-  ring: "○",
-  orb: "◈",
-  eraser: "✕",
+const TOOL_ICONS: Record<string, string> = {
+  block: "\u25AA",
+  spike: "\u25B2",
+  platform: "\u25AC",
+  portal: "\u25C9",
+  coin: "\u25CF",
+  ring: "\u25CB",
+  orb: "\u25C8",
+  eraser: "\u2715",
 };
 
-const TOOL_COLORS: Record<ObjectType, string> = {
+const TOOL_COLORS: Record<string, string> = {
   block: "#4a90d9",
   spike: "#e74c3c",
   platform: "#27ae60",
@@ -60,8 +60,8 @@ export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: 
       <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
         {TOOLBAR_ITEMS.map((type) => {
           const isEraser = type === "eraser";
-          const label = isEraser ? "Eraser" : OBJECT_DEFS[type as Exclude<ObjectType, "eraser">].label;
-          const color = TOOL_COLORS[type];
+          const label = isEraser ? "Eraser" : OBJECT_DEFS[type as BuiltinObjectType]?.label ?? type;
+          const color = TOOL_COLORS[type] ?? "#6b7280";
           const isActive = selected === type;
 
           return (
@@ -101,7 +101,7 @@ export function Toolbar({ selected, onSelect, objectCount, onClear, onExport }: 
               }}
             >
               <span style={{ fontSize: "18px", color: isActive ? color : "#9ca3af" }}>
-                {TOOL_ICONS[type]}
+                {TOOL_ICONS[type] ?? "\u25A0"}
               </span>
               <span
                 style={{

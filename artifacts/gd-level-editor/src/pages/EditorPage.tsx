@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react";
-import type { LevelObject, ObjectType } from "../types";
+import type { LevelObject, ToolType, CustomImage } from "../types";
+import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
+import { CustomImageSidebar } from "../components/CustomImageSidebar";
 
-const HINTS: Record<ObjectType, string> = {
+const BUILTIN_HINTS: Record<string, string> = {
   block: "Click or drag to place blocks",
-  spike: "Click or drag to place spikes — they kill the player",
+  spike: "Click or drag to place spikes - they kill the player",
   platform: "Click or drag to place half-height platforms",
   portal: "Click or drag to place mode-swap portals",
   coin: "Click or drag to place collectible coins",
@@ -16,8 +18,9 @@ const HINTS: Record<ObjectType, string> = {
 };
 
 export default function EditorPage() {
-  const [selectedTool, setSelectedTool] = useState<ObjectType>("block");
+  const [selectedTool, setSelectedTool] = useState<ToolType>("block");
   const [objects, setObjects] = useState<LevelObject[]>([]);
+  const [customImages, setCustomImages] = useState<CustomImage[]>([]);
 
   const handleExport = useCallback(() => {
     const data = {
@@ -43,6 +46,34 @@ export default function EditorPage() {
     }
   }, [objects.length]);
 
+  const handleAddImage = useCallback((image: CustomImage) => {
+    setCustomImages((prev) => [...prev, image]);
+  }, []);
+
+  const handleRemoveImage = useCallback(
+    (id: string) => {
+      setCustomImages((prev) => prev.filter((img) => img.id !== id));
+      setObjects((prev) => prev.filter((obj) => obj.type !== id));
+      if (selectedTool === id) {
+        setSelectedTool("block");
+      }
+    },
+    [selectedTool]
+  );
+
+  const getHint = (): string => {
+    if (BUILTIN_HINTS[selectedTool]) return BUILTIN_HINTS[selectedTool];
+    const custom = customImages.find((img) => img.id === selectedTool);
+    if (custom) return `Click or drag to place "${custom.name}"`;
+    return "Select a tool";
+  };
+
+  const toolLabel = (): string => {
+    if (isBuiltinType(selectedTool) || selectedTool === "eraser") return selectedTool;
+    const custom = customImages.find((img) => img.id === selectedTool);
+    return custom ? custom.name : selectedTool;
+  };
+
   return (
     <div
       style={{
@@ -60,33 +91,43 @@ export default function EditorPage() {
         onClear={handleClear}
         onExport={handleExport}
       />
-      <div
-        style={{
-          flex: 1,
-          padding: "16px",
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-        }}
-      >
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <CustomImageSidebar
+          images={customImages}
+          selectedTool={selectedTool}
+          onSelectTool={setSelectedTool}
+          onAddImage={handleAddImage}
+          onRemoveImage={handleRemoveImage}
+        />
         <div
           style={{
-            color: "rgba(255,255,255,0.25)",
-            fontSize: "11px",
-            fontFamily: "monospace",
-            letterSpacing: "0.05em",
+            flex: 1,
+            padding: "16px",
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
           }}
         >
-          LEVEL CANVAS — {60} x {20} tiles
+          <div
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontSize: "11px",
+              fontFamily: "monospace",
+              letterSpacing: "0.05em",
+            }}
+          >
+            LEVEL CANVAS - 60 x 20 tiles
+          </div>
+          <LevelEditor
+            selectedTool={selectedTool}
+            objects={objects}
+            onObjectsChange={setObjects}
+            customImages={customImages}
+          />
         </div>
-        <LevelEditor
-          selectedTool={selectedTool}
-          objects={objects}
-          onObjectsChange={setObjects}
-        />
       </div>
-      <StatusBar selectedTool={selectedTool} hintText={HINTS[selectedTool]} />
+      <StatusBar selectedTool={toolLabel()} hintText={getHint()} />
     </div>
   );
 }

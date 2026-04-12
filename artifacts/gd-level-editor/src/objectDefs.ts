@@ -1,4 +1,4 @@
-import type { ObjectDef, ObjectType } from "./types";
+import type { ObjectDef, BuiltinObjectType, ToolType } from "./types";
 
 function drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
   ctx.fillStyle = "#4a90d9";
@@ -96,7 +96,7 @@ function drawOrb(ctx: CanvasRenderingContext2D, x: number, y: number, size: numb
   ctx.stroke();
 }
 
-export const OBJECT_DEFS: Record<Exclude<ObjectType, "eraser">, Omit<ObjectDef, "type">> = {
+export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   block:    { label: "Block",    color: "#4a90d9", render: drawBlock },
   spike:    { label: "Spike",    color: "#e74c3c", render: drawSpike },
   platform: { label: "Platform", color: "#27ae60", render: drawPlatform },
@@ -106,6 +106,14 @@ export const OBJECT_DEFS: Record<Exclude<ObjectType, "eraser">, Omit<ObjectDef, 
   orb:      { label: "Orb",      color: "#16a34a", render: drawOrb },
 };
 
-export const TOOLBAR_ITEMS: ObjectType[] = [
+export const BUILTIN_TYPES: BuiltinObjectType[] = [
+  "block", "spike", "platform", "portal", "coin", "ring", "orb"
+];
+
+export const TOOLBAR_ITEMS: ToolType[] = [
   "block", "spike", "platform", "portal", "coin", "ring", "orb", "eraser"
 ];
+
+export function isBuiltinType(type: string): type is BuiltinObjectType {
+  return type in OBJECT_DEFS;
+}

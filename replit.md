@@ -35,17 +35,20 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - **Features**:
   - 60x20 tile-based grid canvas (HTML Canvas)
   - Click or drag to place/erase objects
-  - 7 object types: Block, Spike, Platform, Portal, Coin, Ring, Orb
-  - Objects stored as array of `{ x, y, type }` in React state
-  - Toolbar for tool selection with visual preview
+  - 7 built-in object types: Block, Spike, Platform, Portal, Coin, Ring, Orb
+  - Custom image uploads (PNG): uploaded images get unique IDs and appear in a sidebar
+  - Clicking a custom image in the sidebar selects it as the current tool
+  - Custom images placed on grid are stored as `{ x, y, type: "custom_id" }` — no image data in level.json
+  - Toolbar for built-in tool selection with visual preview
   - Object count display
   - Clear all button
   - Export to `level.json` download
   - Dark Geometry Dash-themed UI
 - **Key files**:
-  - `src/types.ts` — TypeScript types (ObjectType, LevelObject)
-  - `src/objectDefs.ts` — Object definitions and canvas drawing functions
-  - `src/components/LevelEditor.tsx` — Main canvas grid component
-  - `src/components/Toolbar.tsx` — Tool selection toolbar
+  - `src/types.ts` — TypeScript types (ToolType, LevelObject, CustomImage)
+  - `src/objectDefs.ts` — Built-in object definitions and canvas drawing functions
+  - `src/components/LevelEditor.tsx` — Main canvas grid component (renders both built-in and custom objects)
+  - `src/components/Toolbar.tsx` — Built-in tool selection toolbar
+  - `src/components/CustomImageSidebar.tsx` — Sidebar for uploading/selecting custom PNG images
   - `src/components/StatusBar.tsx` — Bottom status bar
   - `src/pages/EditorPage.tsx` — Root page with state management

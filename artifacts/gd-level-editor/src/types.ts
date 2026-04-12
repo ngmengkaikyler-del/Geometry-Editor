@@ -1,22 +1,30 @@
-export type ObjectType =
+export type BuiltinObjectType =
   | "block"
   | "spike"
   | "platform"
   | "portal"
   | "coin"
   | "ring"
-  | "orb"
-  | "eraser";
+  | "orb";
+
+export type ToolType = BuiltinObjectType | "eraser" | string;
 
 export interface LevelObject {
   x: number;
   y: number;
-  type: Exclude<ObjectType, "eraser">;
+  type: string;
 }
 
 export interface ObjectDef {
-  type: ObjectType;
+  type: string;
   label: string;
   color: string;
   render: (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => void;
+}
+
+export interface CustomImage {
+  id: string;
+  name: string;
+  dataUrl: string;
+  image: HTMLImageElement;
 }
