@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0f0f23;
+  color: #e5e7eb;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+canvas {
+  image-rendering: pixelated;
+}
