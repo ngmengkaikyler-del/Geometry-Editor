@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import type { LevelObject, CustomImage } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 import type { GameState, PlayableMode } from "../lib/gameEngine";
-import { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, stepGame, createInitialState } from "../lib/gameEngine";
+import { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, PLAYER_SCREEN_X, stepGame, createInitialState } from "../lib/gameEngine";
 
 interface GameRendererProps {
   objects: LevelObject[];
@@ -31,14 +31,12 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   const holdingRef = useRef(false);
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
-  const cameraXRef = useRef(0);
   const deathTimeRef = useRef<number>(0);
   const attemptsRef = useRef(1);
 
   const restart = useCallback(() => {
     stateRef.current = createInitialState(startMode);
     holdingRef.current = false;
-    cameraXRef.current = 0;
     lastTimeRef.current = 0;
     deathTimeRef.current = 0;
     attemptsRef.current++;
@@ -54,15 +52,14 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   useEffect(() => {
     stateRef.current = createInitialState(startMode);
     holdingRef.current = false;
-    cameraXRef.current = 0;
     lastTimeRef.current = 0;
   }, [startMode]);
 
   const drawPlayer = useCallback((ctx: CanvasRenderingContext2D, p: GameState["player"], camX: number) => {
-    const sx = p.x - camX;
+    const screenX = p.worldX - camX;
     const sy = p.y;
     const color = MODE_COLORS[p.mode];
-    const px = sx + PLAYER_OFFSET;
+    const px = screenX + PLAYER_OFFSET;
     const py = sy + PLAYER_OFFSET;
 
     ctx.save();
@@ -145,16 +142,16 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     }
 
     for (const obj of objects) {
-      const px = obj.x * TILE - camX;
+      const screenObjX = obj.x * TILE - camX;
       const py = obj.y * TILE;
-      if (px < -TILE || px > w + TILE) continue;
+      if (screenObjX < -TILE || screenObjX > w + TILE) continue;
 
       if (isBuiltinType(obj.type)) {
-        OBJECT_DEFS[obj.type].render(ctx, px, py, TILE);
+        OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
       } else {
         const custom = imgMap.get(obj.type);
         if (custom) {
-          ctx.drawImage(custom.image, px, py, TILE, TILE);
+          ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
         }
       }
     }
@@ -209,17 +206,15 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       stateRef.current = stepGame(stateRef.current, dt, objects);
 
       const p = stateRef.current.player;
-      const canvasW = canvas.width;
-      const targetCamX = p.x - canvasW * 0.3;
-      cameraXRef.current = Math.max(0, Math.min(targetCamX, COLS * TILE - canvasW));
+      const camX = stateRef.current.cameraX;
 
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        drawLevel(ctx, cameraXRef.current);
-        drawPlayer(ctx, p, cameraXRef.current);
+        drawLevel(ctx, camX);
+        drawPlayer(ctx, p, camX);
 
         ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.fillRect(0, 0, 200, 50);
+        ctx.fillRect(0, 0, 200, 62);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 11px monospace";
         ctx.textAlign = "left";
@@ -231,6 +226,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.fillStyle = "#9ca3af";
         ctx.fillText(`Speed: ${p.speedMultiplier.toFixed(1)}x`, 8, 20);
         ctx.fillText(`Time: ${stateRef.current.elapsed.toFixed(1)}s`, 8, 34);
+        ctx.fillText(`Attempt: ${attemptsRef.current}`, 8, 48);
 
         if (p.dead) {
           if (deathTimeRef.current === 0) {
@@ -277,11 +273,6 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.textAlign = "right";
         ctx.textBaseline = "top";
         ctx.fillText("ESC = edit | R = restart | Space/Click = action", canvas.width - 8, 6);
-
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.font = "10px monospace";
-        ctx.textAlign = "left";
-        ctx.fillText(`Attempt: ${attemptsRef.current}`, 8, 48);
       }
 
       animRef.current = requestAnimationFrame(loop);

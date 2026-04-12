@@ -1,24 +1,26 @@
 import type { LevelObject } from "../types";
-import { SPEED_DATA } from "../objectDefs";
 
 export type PlayableMode = "cube" | "ship" | "spider" | "wave";
 
 const TILE = 32;
 const COLS = 60;
 const ROWS = 20;
-const GRAVITY = 62;
-const JUMP_VY = -14;
-const SHIP_UP_VY = -10;
-const SHIP_GRAVITY = 25;
-const WAVE_SPEED = 10;
-const WAVE_MINI_SPEED = 20;
+
+const BASE_SCROLL_SPEED = 150;
+
+const GRAVITY = 1800;
+const JUMP_VY = -580;
+const SHIP_THRUST = -1400;
+const SHIP_GRAVITY = 900;
+const SHIP_MAX_VY = 400;
+const WAVE_VY_RATIO = 1;
 
 const SPEED_MULTIPLIERS: Record<string, number> = {
-  speed_slow: 0.7,
+  speed_slow: 0.5,
   speed_normal: 1,
-  speed_fast: 1.4,
-  speed_vfast: 1.8,
-  speed_sfast: 2.3,
+  speed_fast: 2,
+  speed_vfast: 3,
+  speed_sfast: 4,
 };
 
 const GAMEMODE_MAP: Record<string, PlayableMode> = {
@@ -35,10 +37,9 @@ const GAMEMODE_MAP: Record<string, PlayableMode> = {
 };
 
 export interface PlayerState {
-  x: number;
+  worldX: number;
   y: number;
   vy: number;
-  vx: number;
   mode: PlayableMode;
   grounded: boolean;
   dead: boolean;
@@ -48,6 +49,8 @@ export interface PlayerState {
 
 export interface GameState {
   player: PlayerState;
+  cameraX: number;
+  targetCameraX: number;
   holding: boolean;
   startTime: number;
   elapsed: number;
@@ -58,14 +61,14 @@ const HAZARD_TYPES = new Set(["spike"]);
 const SPEED_TYPES = new Set(Object.keys(SPEED_MULTIPLIERS));
 const GAMEMODE_TYPES = new Set(Object.keys(GAMEMODE_MAP));
 
+function key(col: number, row: number) {
+  return `${col},${row}`;
+}
+
 interface CollisionGrid {
   solids: Set<string>;
   hazards: Set<string>;
   portals: Map<string, LevelObject>;
-}
-
-function key(col: number, row: number) {
-  return `${col},${row}`;
 }
 
 function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
@@ -87,24 +90,31 @@ function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
   return { solids, hazards, portals };
 }
 
+const PLAYER_SCREEN_X = 140;
+
 export function createInitialState(startMode: PlayableMode): GameState {
   return {
     player: {
-      x: 1.5 * TILE,
+      worldX: PLAYER_SCREEN_X,
       y: (ROWS - 2) * TILE,
       vy: 0,
-      vx: 3,
       mode: startMode,
       grounded: false,
       dead: false,
       won: false,
       speedMultiplier: 1,
     },
+    cameraX: 0,
+    targetCameraX: 0,
     holding: false,
     startTime: performance.now(),
     elapsed: 0,
   };
 }
+
+const PLAYER_W = TILE * 0.8;
+const PLAYER_H = TILE * 0.8;
+const PLAYER_OFFSET = (TILE - PLAYER_W) / 2;
 
 function isSolid(grid: CollisionGrid, px: number, py: number, w: number, h: number): boolean {
   const left = Math.floor(px / TILE);
@@ -135,53 +145,55 @@ function isHazard(grid: CollisionGrid, px: number, py: number, w: number, h: num
 }
 
 function checkPortals(grid: CollisionGrid, player: PlayerState) {
-  const col = Math.floor((player.x + TILE * 0.4) / TILE);
-  const row = Math.floor((player.y + TILE * 0.4) / TILE);
+  const col = Math.floor((player.worldX + PLAYER_OFFSET + PLAYER_W * 0.5) / TILE);
+  const row = Math.floor((player.y + PLAYER_OFFSET + PLAYER_H * 0.5) / TILE);
 
-  for (let dc = 0; dc <= 0; dc++) {
-    const portal = grid.portals.get(key(col + dc, row));
-    if (!portal) continue;
+  const portal = grid.portals.get(key(col, row));
+  if (!portal) return;
 
-    if (SPEED_TYPES.has(portal.type)) {
-      player.speedMultiplier = SPEED_MULTIPLIERS[portal.type] ?? 1;
-    }
-    if (GAMEMODE_TYPES.has(portal.type)) {
-      const newMode = GAMEMODE_MAP[portal.type];
-      if (newMode && newMode !== player.mode) {
-        player.mode = newMode;
-        player.vy = 0;
-      }
+  if (SPEED_TYPES.has(portal.type)) {
+    player.speedMultiplier = SPEED_MULTIPLIERS[portal.type] ?? 1;
+  }
+  if (GAMEMODE_TYPES.has(portal.type)) {
+    const newMode = GAMEMODE_MAP[portal.type];
+    if (newMode && newMode !== player.mode) {
+      player.mode = newMode;
+      player.vy = 0;
     }
   }
 }
 
-const PLAYER_W = TILE * 0.8;
-const PLAYER_H = TILE * 0.8;
-const PLAYER_OFFSET = (TILE - PLAYER_W) / 2;
-
 export function stepGame(state: GameState, dt: number, objects: LevelObject[]): GameState {
   const p = { ...state.player };
-  if (p.dead || p.won) return { ...state, player: p };
+  let camX = state.cameraX;
+  let targetCamX = state.targetCameraX;
+
+  if (p.dead || p.won) {
+    return { ...state, player: p, cameraX: camX, targetCameraX: targetCamX };
+  }
 
   const grid = buildCollisionGrid(objects);
   const holding = state.holding;
   const realDt = Math.min(dt, 0.033);
-  const worldW = COLS * TILE;
   const worldH = ROWS * TILE;
+  const worldW = COLS * TILE;
 
-  const baseSpeed = 3;
-  p.vx = baseSpeed * p.speedMultiplier;
+  const scrollSpeed = BASE_SCROLL_SPEED * p.speedMultiplier;
 
-  const px = p.x + PLAYER_OFFSET;
-  const py = p.y + PLAYER_OFFSET;
+  targetCamX += scrollSpeed * realDt;
+
+  const maxCameraX = Math.max(0, worldW - COLS * TILE * 0.5);
+  targetCamX = Math.min(targetCamX, maxCameraX);
+
+  const lerpFactor = 1 - Math.pow(0.001, realDt);
+  camX += (targetCamX - camX) * lerpFactor;
+  camX = Math.max(0, Math.min(camX, maxCameraX));
+
+  p.worldX = camX + PLAYER_SCREEN_X;
 
   switch (p.mode) {
     case "cube": {
       p.vy += GRAVITY * realDt;
-
-      const groundCheck = isSolid(grid, px, py + PLAYER_H + 1, PLAYER_W, 1);
-      p.grounded = groundCheck;
-
       if (holding && p.grounded) {
         p.vy = JUMP_VY;
         p.grounded = false;
@@ -190,24 +202,21 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     }
     case "ship": {
       if (holding) {
-        p.vy -= SHIP_UP_VY * realDt * 4;
-        if (p.vy > 0) p.vy -= SHIP_GRAVITY * realDt * 2;
-        p.vy = Math.max(p.vy, -8);
+        p.vy += SHIP_THRUST * realDt;
+        p.vy = Math.max(p.vy, -SHIP_MAX_VY);
       } else {
         p.vy += SHIP_GRAVITY * realDt;
-        p.vy = Math.min(p.vy, 8);
+        p.vy = Math.min(p.vy, SHIP_MAX_VY);
       }
       p.grounded = false;
       break;
     }
     case "spider": {
       p.vy += GRAVITY * realDt;
-      const groundCheck = isSolid(grid, px, py + PLAYER_H + 1, PLAYER_W, 1);
-      p.grounded = groundCheck;
-
       if (holding && p.grounded) {
+        const playerCol = Math.floor((p.worldX + TILE * 0.5) / TILE);
         let targetRow = Math.floor(p.y / TILE) - 1;
-        while (targetRow >= 0 && !grid.solids.has(key(Math.floor(p.x / TILE), targetRow))) {
+        while (targetRow >= 0 && !grid.solids.has(key(playerCol, targetRow))) {
           targetRow--;
         }
         if (targetRow >= 0) {
@@ -218,7 +227,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
       break;
     }
     case "wave": {
-      const waveVy = WAVE_SPEED * p.speedMultiplier;
+      const waveVy = scrollSpeed * WAVE_VY_RATIO;
       if (holding) {
         p.vy = -waveVy;
       } else {
@@ -229,31 +238,42 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     }
   }
 
-  p.x += p.vx;
-  p.y += p.vy;
+  p.y += p.vy * realDt;
 
-  const ppx = p.x + PLAYER_OFFSET;
-  const ppy = p.y + PLAYER_OFFSET;
+  let bx = p.worldX + PLAYER_OFFSET;
+  let by = p.y + PLAYER_OFFSET;
 
-  if (isSolid(grid, ppx, ppy, PLAYER_W, PLAYER_H)) {
+  if (isSolid(grid, bx, by, PLAYER_W, PLAYER_H)) {
     if (p.vy > 0) {
-      p.y = Math.floor((ppy) / TILE) * TILE - PLAYER_OFFSET;
+      const bottomRow = Math.floor((by + PLAYER_H - 0.01) / TILE);
+      p.y = bottomRow * TILE - PLAYER_H - PLAYER_OFFSET;
       p.vy = 0;
       p.grounded = true;
     } else if (p.vy < 0) {
-      p.y = (Math.floor(ppy / TILE) + 1) * TILE - PLAYER_OFFSET;
+      const topRow = Math.floor(by / TILE);
+      p.y = (topRow + 1) * TILE - PLAYER_OFFSET;
       p.vy = 0;
-    }
-    if (p.vx > 0 && isSolid(grid, p.x + PLAYER_OFFSET + PLAYER_W, p.y + PLAYER_OFFSET, 1, PLAYER_H)) {
-      p.dead = true;
     }
   }
 
-  if (ppy < 0) {
+  bx = p.worldX + PLAYER_OFFSET;
+  by = p.y + PLAYER_OFFSET;
+
+  const groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
+  if (p.mode === "cube" || p.mode === "spider") {
+    p.grounded = groundBelow;
+  }
+
+  const wallInset = 6;
+  if (isSolid(grid, bx + PLAYER_W, by + wallInset, 2, PLAYER_H - wallInset * 2)) {
+    p.dead = true;
+  }
+
+  if (by < 0) {
     p.y = -PLAYER_OFFSET;
     p.vy = Math.max(0, p.vy);
   }
-  if (ppy + PLAYER_H > worldH) {
+  if (by + PLAYER_H > worldH) {
     if (p.mode === "wave" || p.mode === "ship") {
       p.y = worldH - PLAYER_H - PLAYER_OFFSET;
       p.vy = 0;
@@ -262,21 +282,23 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     }
   }
 
-  if (isHazard(grid, p.x + PLAYER_OFFSET, p.y + PLAYER_OFFSET, PLAYER_W, PLAYER_H)) {
+  if (isHazard(grid, bx, p.y + PLAYER_OFFSET, PLAYER_W, PLAYER_H)) {
     p.dead = true;
   }
 
   checkPortals(grid, p);
 
-  if (p.x > worldW) {
+  if (p.worldX > worldW) {
     p.won = true;
   }
 
   return {
     ...state,
     player: p,
+    cameraX: camX,
+    targetCameraX: targetCamX,
     elapsed: (performance.now() - state.startTime) / 1000,
   };
 }
 
-export { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET };
+export { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, PLAYER_SCREEN_X };
