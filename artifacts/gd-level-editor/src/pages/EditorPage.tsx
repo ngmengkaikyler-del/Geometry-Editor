@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { LevelObject, ToolType, CustomImage } from "../types";
+import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
 import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
 import { CustomImageSidebar } from "../components/CustomImageSidebar";
+import { MusicPlayer } from "../components/MusicPlayer";
 import { saveAsset, deleteAsset, loadAllAssets } from "../lib/assetStore";
+import { saveMusicTrack, deleteMusicTrack, loadMusicTrack } from "../lib/musicStore";
 import { exportLevelZip, exportLevelJsonOnly } from "../lib/exportLevel";
 import { processImageFile } from "../lib/processImageFile";
 
@@ -20,19 +22,37 @@ const BUILTIN_HINTS: Record<string, string> = {
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 
+const AUDIO_EXTENSIONS = ["mp3", "wav"];
+
+function isAudioFile(file: File): boolean {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return AUDIO_EXTENSIONS.includes(ext) || file.type.startsWith("audio/");
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function EditorPage() {
   const [selectedTool, setSelectedTool] = useState<ToolType>("block");
   const [objects, setObjects] = useState<LevelObject[]>([]);
   const [customImages, setCustomImages] = useState<CustomImage[]>([]);
+  const [musicTrack, setMusicTrack] = useState<MusicTrack | null>(null);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [levelName, setLevelName] = useState("Untitled Level");
   const [isDragOver, setIsDragOver] = useState(false);
   const dragCounterRef = useRef(0);
 
   useEffect(() => {
-    loadAllAssets()
-      .then((images) => {
+    Promise.all([loadAllAssets(), loadMusicTrack()])
+      .then(([images, track]) => {
         setCustomImages(images);
+        if (track) setMusicTrack(track);
         setAssetsLoaded(true);
       })
       .catch(() => {
@@ -70,33 +90,44 @@ export default function EditorPage() {
       setIsDragOver(false);
       dragCounterRef.current = 0;
 
-      const files = Array.from(e.dataTransfer.files).filter((f) =>
-        f.type === "image/png"
-      );
-      if (files.length === 0) return;
+      const files = Array.from(e.dataTransfer.files);
+      const imageFiles = files.filter((f) => f.type === "image/png");
+      const audioFiles = files.filter((f) => isAudioFile(f));
 
-      const results: CustomImage[] = [];
-      for (const file of files) {
+      for (const file of imageFiles) {
         try {
           const img = await processImageFile(file);
-          results.push(img);
+          setCustomImages((prev) => [...prev, img]);
+          saveAsset(img).catch(() => {});
         } catch {}
       }
-      for (const img of results) {
-        setCustomImages((prev) => [...prev, img]);
-        saveAsset(img).catch(() => {});
+
+      if (audioFiles.length > 0) {
+        const file = audioFiles[0];
+        try {
+          const dataUrl = await readFileAsDataUrl(file);
+          const ext = file.name.split(".").pop()?.toLowerCase() ?? "mp3";
+          const track: MusicTrack = {
+            id: `music_${Date.now()}`,
+            name: file.name.replace(/\.(mp3|wav)$/i, ""),
+            dataUrl,
+            fileExtension: ext,
+          };
+          setMusicTrack(track);
+          saveMusicTrack(track).catch(() => {});
+        } catch {}
       }
     },
     []
   );
 
   const handleExportJson = useCallback(() => {
-    exportLevelJsonOnly(levelName, objects, customImages);
-  }, [levelName, objects, customImages]);
+    exportLevelJsonOnly(levelName, objects, customImages, musicTrack);
+  }, [levelName, objects, customImages, musicTrack]);
 
   const handleExportZip = useCallback(() => {
-    exportLevelZip(levelName, objects, customImages);
-  }, [levelName, objects, customImages]);
+    exportLevelZip(levelName, objects, customImages, musicTrack);
+  }, [levelName, objects, customImages, musicTrack]);
 
   const handleClear = useCallback(() => {
     if (objects.length === 0) return;
@@ -121,6 +152,18 @@ export default function EditorPage() {
     },
     [selectedTool]
   );
+
+  const handleUploadMusic = useCallback((track: MusicTrack) => {
+    setMusicTrack(track);
+    saveMusicTrack(track).catch(() => {});
+  }, []);
+
+  const handleRemoveMusic = useCallback(() => {
+    if (musicTrack) {
+      deleteMusicTrack(musicTrack.id).catch(() => {});
+    }
+    setMusicTrack(null);
+  }, [musicTrack]);
 
   const getHint = (): string => {
     if (BUILTIN_HINTS[selectedTool]) return BUILTIN_HINTS[selectedTool];
@@ -185,7 +228,7 @@ export default function EditorPage() {
                 fontFamily: "monospace",
               }}
             >
-              Drop PNG files here
+              Drop files here
             </div>
             <div
               style={{
@@ -195,7 +238,7 @@ export default function EditorPage() {
                 marginTop: "4px",
               }}
             >
-              They'll be added as custom assets
+              PNG images or MP3/WAV audio
             </div>
           </div>
         </div>
@@ -247,6 +290,11 @@ export default function EditorPage() {
           />
         </div>
       </div>
+      <MusicPlayer
+        track={musicTrack}
+        onUpload={handleUploadMusic}
+        onRemove={handleRemoveMusic}
+      />
       <StatusBar selectedTool={toolLabel()} hintText={getHint()} />
     </div>
   );

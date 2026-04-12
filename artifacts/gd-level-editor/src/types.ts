@@ -28,3 +28,10 @@ export interface CustomImage {
   dataUrl: string;
   image: HTMLImageElement;
 }
+
+export interface MusicTrack {
+  id: string;
+  name: string;
+  dataUrl: string;
+  fileExtension: string;
+}

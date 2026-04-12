@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import type { LevelObject, CustomImage } from "../types";
+import type { LevelObject, CustomImage, MusicTrack } from "../types";
 import { isBuiltinType } from "../objectDefs";
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -13,10 +13,11 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([arr], { type: mime });
 }
 
-export async function exportLevelZip(
+function buildLevelData(
   levelName: string,
   objects: LevelObject[],
-  customImages: CustomImage[]
+  customImages: CustomImage[],
+  musicTrack: MusicTrack | null
 ) {
   const usedCustomIds = new Set<string>();
   for (const obj of objects) {
@@ -35,7 +36,7 @@ export async function exportLevelZip(
     }
   }
 
-  const levelData = {
+  const levelData: Record<string, unknown> = {
     version: "1.0",
     name: levelName || "Untitled Level",
     gridSize: 32,
@@ -45,7 +46,31 @@ export async function exportLevelZip(
     objects,
   };
 
-  const assetsData: Record<string, string> = assetMap;
+  if (musicTrack) {
+    levelData.music = {
+      id: musicTrack.id,
+      name: musicTrack.name,
+      file: `${musicTrack.id}.${musicTrack.fileExtension}`,
+    };
+  }
+
+  return { levelData, assetMap, usedImages };
+}
+
+export async function exportLevelZip(
+  levelName: string,
+  objects: LevelObject[],
+  customImages: CustomImage[],
+  musicTrack: MusicTrack | null
+) {
+  const { levelData, assetMap, usedImages } = buildLevelData(
+    levelName, objects, customImages, musicTrack
+  );
+
+  const assetsData: Record<string, string> = { ...assetMap };
+  if (musicTrack) {
+    assetsData[musicTrack.id] = `${musicTrack.id}.${musicTrack.fileExtension}`;
+  }
 
   const zip = new JSZip();
   zip.file("level.json", JSON.stringify(levelData, null, 2));
@@ -56,6 +81,10 @@ export async function exportLevelZip(
     for (const img of usedImages) {
       const blob = dataUrlToBlob(img.dataUrl);
       assetsFolder.file(`${img.id}.png`, blob);
+    }
+    if (musicTrack) {
+      const blob = dataUrlToBlob(musicTrack.dataUrl);
+      assetsFolder.file(`${musicTrack.id}.${musicTrack.fileExtension}`, blob);
     }
   }
 
@@ -72,24 +101,10 @@ export async function exportLevelZip(
 export function exportLevelJsonOnly(
   levelName: string,
   objects: LevelObject[],
-  customImages: CustomImage[]
+  customImages: CustomImage[],
+  musicTrack: MusicTrack | null
 ) {
-  const usedCustomIds = new Set<string>();
-  for (const obj of objects) {
-    if (!isBuiltinType(obj.type)) {
-      usedCustomIds.add(obj.type);
-    }
-  }
-
-  const levelData = {
-    version: "1.0",
-    name: levelName || "Untitled Level",
-    gridSize: 32,
-    cols: 60,
-    rows: 20,
-    assetIds: Array.from(usedCustomIds),
-    objects,
-  };
+  const { levelData } = buildLevelData(levelName, objects, customImages, musicTrack);
 
   const blob = new Blob([JSON.stringify(levelData, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);

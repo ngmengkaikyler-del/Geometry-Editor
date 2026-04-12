@@ -43,9 +43,12 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - Toolbar for built-in tool selection with visual preview
   - Object count display
   - Clear all button
-  - Export: JSON-only download or full ZIP (level.json + assets.json + PNG files) via JSZip
+  - Export: JSON-only download or full ZIP (level.json + assets.json + PNG/audio files) via JSZip
   - Level name input in toolbar (used in exports and ZIP filename)
-  - Drag-and-drop PNG files anywhere on the editor to add as custom assets
+  - Drag-and-drop PNG files or MP3/WAV audio anywhere on the editor to add as assets
+  - Music support: upload MP3/WAV, play/pause controls, seekable timeline/progress bar
+  - Music persisted in IndexedDB (`gd-level-editor-music` DB), single-track semantics
+  - Music info (ID + filename) included in level.json; audio file bundled in ZIP exports
   - Dark Geometry Dash-themed UI
 - **Key files**:
   - `src/types.ts` — TypeScript types (ToolType, LevelObject, CustomImage)
@@ -55,6 +58,8 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - `src/components/CustomImageSidebar.tsx` — Sidebar for uploading/selecting custom PNG images
   - `src/lib/assetStore.ts` — IndexedDB persistence layer for custom image assets (save/load/delete)
   - `src/lib/processImageFile.ts` — Shared PNG file processing utility (used by sidebar upload and drag-and-drop)
-  - `src/lib/exportLevel.ts` — Export logic for JSON-only and ZIP downloads
+  - `src/lib/musicStore.ts` — IndexedDB persistence for music tracks (single-track, clear-on-save)
+  - `src/lib/exportLevel.ts` — Export logic for JSON-only and ZIP downloads (includes music)
+  - `src/components/MusicPlayer.tsx` — Music player bar with play/pause, seek, timeline
   - `src/components/StatusBar.tsx` — Bottom status bar
   - `src/pages/EditorPage.tsx` — Root page with state management and drag-and-drop handling
