@@ -33,6 +33,8 @@ const TOOL_ICONS: Record<string, string> = {
   gm_ufo_mini: "\u2666",
   gm_robot: "\u2699",
   gm_robot_mini: "\u2699",
+  gm_wave: "\u2215",
+  gm_wave_mini: "\u2215",
   eraser: "\u2715",
 };
 
@@ -57,6 +59,8 @@ const TOOL_COLORS: Record<string, string> = {
   gm_ufo_mini: "#a78bfa",
   gm_robot: "#6ee7b7",
   gm_robot_mini: "#6ee7b7",
+  gm_wave: "#facc15",
+  gm_wave_mini: "#facc15",
   eraser: "#6b7280",
 };
 

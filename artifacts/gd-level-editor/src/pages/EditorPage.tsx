@@ -32,6 +32,8 @@ const BUILTIN_HINTS: Record<string, string> = {
   gm_ufo_mini: `UFO (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_ufo_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ufo_mini.gravity}`,
   gm_robot: `Robot (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_robot.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot.maxHold}s`,
   gm_robot_mini: `Robot (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_robot_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot_mini.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot_mini.maxHold}s`,
+  gm_wave: `Wave (Big) \u2014 45\u00B0 angle | Vy = Vx (1:1 ratio) | Hold=up, Release=down`,
+  gm_wave_mini: `Wave (Mini) \u2014 63.43\u00B0 angle | Vy = 2\u00D7Vx (2:1 ratio) | 2x sensitivity`,
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 

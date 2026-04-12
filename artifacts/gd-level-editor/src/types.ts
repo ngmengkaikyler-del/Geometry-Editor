@@ -18,7 +18,9 @@ export type BuiltinObjectType =
   | "gm_ufo"
   | "gm_ufo_mini"
   | "gm_robot"
-  | "gm_robot_mini";
+  | "gm_robot_mini"
+  | "gm_wave"
+  | "gm_wave_mini";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 

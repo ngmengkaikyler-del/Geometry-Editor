@@ -233,10 +233,19 @@ function drawRobotModeMini(ctx: CanvasRenderingContext2D, x: number, y: number, 
   drawGamemodePortal(ctx, x, y, size, "#6ee7b7", "#059669", "\u2699", true);
 }
 
+function drawWaveMode(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  drawGamemodePortal(ctx, x, y, size, "#facc15", "#a16207", "\u2215", false);
+}
+function drawWaveModeMini(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  drawGamemodePortal(ctx, x, y, size, "#facc15", "#a16207", "\u2215", true);
+}
+
 export interface GamemodeInfo {
   jumpForce: number;
   gravity: number;
   maxHold?: number;
+  angle?: number;
+  vyRatio?: number;
 }
 
 export const GAMEMODE_DATA: Record<string, GamemodeInfo> = {
@@ -248,6 +257,8 @@ export const GAMEMODE_DATA: Record<string, GamemodeInfo> = {
   gm_ufo_mini:   { jumpForce: 44.2907, gravity: 6.6436 },
   gm_robot:      { jumpForce: 84.1490, gravity: 10.3433, maxHold: 0.273 },
   gm_robot_mini: { jumpForce: 84.1490, gravity: 8.2396, maxHold: 0.278 },
+  gm_wave:       { jumpForce: 0, gravity: 0, angle: 45, vyRatio: 1 },
+  gm_wave_mini:  { jumpForce: 0, gravity: 0, angle: 63.43, vyRatio: 2 },
 };
 
 export interface SpeedInfo {
@@ -285,6 +296,8 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   gm_ufo_mini:   { label: "UFO M",     color: "#a78bfa", render: drawUfoModeMini },
   gm_robot:      { label: "Robot",     color: "#6ee7b7", render: drawRobotMode },
   gm_robot_mini: { label: "Robot M",   color: "#6ee7b7", render: drawRobotModeMini },
+  gm_wave:       { label: "Wave",      color: "#facc15", render: drawWaveMode },
+  gm_wave_mini:  { label: "Wave M",    color: "#facc15", render: drawWaveModeMini },
 };
 
 export const BUILTIN_TYPES: BuiltinObjectType[] = [
@@ -292,12 +305,13 @@ export const BUILTIN_TYPES: BuiltinObjectType[] = [
   "speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast",
   "gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini",
   "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini",
+  "gm_wave", "gm_wave_mini",
 ];
 
 export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
   { label: "Objects", items: ["block", "spike", "platform", "portal", "coin", "ring", "orb"] },
   { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
-  { label: "Gamemode", items: ["gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini", "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini"] },
+  { label: "Gamemode", items: ["gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini", "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini", "gm_wave", "gm_wave_mini"] },
   { label: "", items: ["eraser"] },
 ];
 

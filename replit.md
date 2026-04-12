@@ -38,7 +38,7 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
   - 20 built-in object types organized in 3 toolbar groups:
     - Objects: Block, Spike, Platform, Portal, Coin, Ring, Orb
     - Speed: Slow (0.5x), Normal (1x), Fast (2x), V.Fast (3x), S.Fast (4x)
-    - Gamemode: Cube, Cube Mini, Ball, Ball Mini, UFO, UFO Mini, Robot, Robot Mini
+    - Gamemode: Cube, Cube Mini, Ball, Ball Mini, UFO, UFO Mini, Robot, Robot Mini, Wave, Wave Mini
   - Speed changers: diamond-shaped portals with GD-accurate speed values (units/sec and blocks/sec)
   - Gamemode portals: oval portals with icons, GD-accurate jump force/gravity/max hold values
   - Custom image uploads (PNG): uploaded images get unique IDs and appear in a sidebar
