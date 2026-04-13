@@ -15,7 +15,7 @@ const MODE_COLORS: Record<PlayableMode, string> = {
   cube: "#40e0d0",
   ship: "#a78bfa",
   spider: "#9ca3af",
-  wave: "#facc15",
+  wave: "#ff3aba",
 };
 
 const MODE_SHAPES: Record<PlayableMode, string> = {
@@ -116,28 +116,40 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
-      for (let pass = 0; pass < 2; pass++) {
-        ctx.beginPath();
-        const t0 = trail[0];
-        ctx.moveTo(t0.x - camX, t0.y);
-        for (let i = 1; i < trail.length; i++) {
-          const t = trail[i];
-          ctx.lineTo(t.x - camX, t.y);
-        }
-
-        if (pass === 0) {
-          ctx.strokeStyle = color + "30";
-          ctx.lineWidth = 8;
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 12;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        } else {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-        }
+      ctx.beginPath();
+      const t0 = trail[0];
+      ctx.moveTo(t0.x - camX, t0.y);
+      for (let i = 1; i < trail.length; i++) {
+        ctx.lineTo(trail[i].x - camX, trail[i].y);
       }
+      ctx.strokeStyle = color + "18";
+      ctx.lineWidth = 18;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 25;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.moveTo(t0.x - camX, t0.y);
+      for (let i = 1; i < trail.length; i++) {
+        ctx.lineTo(trail[i].x - camX, trail[i].y);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 5;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.moveTo(t0.x - camX, t0.y);
+      for (let i = 1; i < trail.length; i++) {
+        ctx.lineTo(trail[i].x - camX, trail[i].y);
+      }
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
       ctx.restore();
     } else if (trail.length >= 2) {
       for (let i = 0; i < trail.length - 1; i++) {
@@ -221,19 +233,56 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         break;
       }
       case "slash": {
+        const waveR = PLAYER_W * 0.48;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = color;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = "#1a6b5a";
         ctx.beginPath();
-        ctx.moveTo(px, py + PLAYER_H);
-        ctx.lineTo(px + PLAYER_W * 0.3, py + PLAYER_H);
-        ctx.lineTo(px + PLAYER_W, py);
-        ctx.lineTo(px + PLAYER_W * 0.7, py);
-        ctx.closePath();
+        ctx.arc(cx, cy, waveR, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
+
+        ctx.fillStyle = "#2dd4a8";
+        ctx.beginPath();
+        ctx.arc(cx, cy, waveR * 0.82, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#0d3d30";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, waveR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const eyeW = waveR * 0.32;
+        const eyeH = waveR * 0.42;
+        const eyeY = cy - waveR * 0.08;
+        const eyeLeftX = cx - waveR * 0.28;
+        const eyeRightX = cx + waveR * 0.28;
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.ellipse(eyeLeftX, eyeY, eyeW * 0.5, eyeH * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(eyeRightX, eyeY, eyeW * 0.5, eyeH * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const pupilR = eyeW * 0.28;
+        const pupilOffX = waveR * 0.06;
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(eyeLeftX + pupilOffX, eyeY, pupilR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(eyeRightX + pupilOffX, eyeY, pupilR, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#0d3d30";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(eyeLeftX, eyeY, eyeW * 0.5, eyeH * 0.5, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(eyeRightX, eyeY, eyeW * 0.5, eyeH * 0.5, 0, 0, Math.PI * 2);
         ctx.stroke();
         break;
       }
