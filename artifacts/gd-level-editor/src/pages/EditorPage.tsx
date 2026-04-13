@@ -16,8 +16,12 @@ import { generateWaveTrialsLevel } from "../lib/demoLevels";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Left-click to place blocks | Right-click to delete",
-  spike: "Spike (up) \u2014 triangle hazard, kills on touch",
-  spike_down: "Spike (down) \u2014 inverted triangle hazard, kills on touch",
+  spike_purple: "Purple Spike (up) \u2014 kills on touch",
+  spike_purple_down: "Purple Spike (down) \u2014 kills on touch",
+  spike_green: "Green Spike (up) \u2014 kills on touch",
+  spike_green_down: "Green Spike (down) \u2014 kills on touch",
+  spike_blue: "Blue Spike (up) \u2014 kills on touch",
+  spike_blue_down: "Blue Spike (down) \u2014 kills on touch",
   sawblade: "Sawblade \u2014 circular spinning hazard, kills on touch",
   ring: "Ring \u2014 cyan jump trigger",
   orb: "Orb \u2014 yellow jump trigger",

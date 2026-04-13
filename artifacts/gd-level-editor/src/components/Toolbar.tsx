@@ -21,8 +21,12 @@ interface ToolbarProps {
 
 const TOOL_ICONS: Record<string, string> = {
   block: "\u25A0",
-  spike: "\u25B2",
-  spike_down: "\u25BC",
+  spike_purple: "\u25B2",
+  spike_purple_down: "\u25BC",
+  spike_green: "\u25B2",
+  spike_green_down: "\u25BC",
+  spike_blue: "\u25B2",
+  spike_blue_down: "\u25BC",
   sawblade: "\u2731",
   ring: "\u25CB",
   orb: "\u25C8",
@@ -39,8 +43,12 @@ const TOOL_ICONS: Record<string, string> = {
 
 const TOOL_COLORS: Record<string, string> = {
   block: "#d63384",
-  spike: "#e84393",
-  spike_down: "#e84393",
+  spike_purple: "#b844e0",
+  spike_purple_down: "#b844e0",
+  spike_green: "#44e060",
+  spike_green_down: "#44e060",
+  spike_blue: "#44b0e0",
+  spike_blue_down: "#44b0e0",
   sawblade: "#e84393",
   ring: "#00e5ff",
   orb: "#ffd700",

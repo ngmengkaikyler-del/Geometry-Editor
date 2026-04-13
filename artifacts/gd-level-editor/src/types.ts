@@ -1,7 +1,11 @@
 export type BuiltinObjectType =
+  | "spike_purple"
+  | "spike_purple_down"
+  | "spike_green"
+  | "spike_green_down"
+  | "spike_blue"
+  | "spike_blue_down"
   | "block"
-  | "spike"
-  | "spike_down"
   | "sawblade"
   | "ring"
   | "orb"

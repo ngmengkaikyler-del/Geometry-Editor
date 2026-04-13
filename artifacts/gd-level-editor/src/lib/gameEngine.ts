@@ -56,7 +56,12 @@ export interface GameState {
 }
 
 const SOLID_TYPES = new Set(["block"]);
-const HAZARD_TYPES = new Set(["spike", "spike_down", "sawblade"]);
+const HAZARD_TYPES = new Set([
+  "spike", "spike_down", "sawblade",
+  "spike_purple", "spike_purple_down",
+  "spike_green", "spike_green_down",
+  "spike_blue", "spike_blue_down",
+]);
 const SPEED_TYPES = new Set(Object.keys(SPEED_MULTIPLIERS));
 const GAMEMODE_TYPES = new Set(Object.keys(GAMEMODE_MAP));
 
