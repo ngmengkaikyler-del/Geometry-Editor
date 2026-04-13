@@ -6,15 +6,8 @@ export type BuiltinObjectType =
   | "spike_blue"
   | "spike_blue_down"
   | "block"
-  | "sawblade"
   | "ring"
   | "orb"
-  | "speed_slow"
-  | "speed_normal"
-  | "speed_fast"
-  | "speed_vfast"
-  | "speed_sfast"
-  | "gm_cube"
   | "gm_wave"
   | "gm_wave_mini";
 

@@ -23,7 +23,6 @@ function makeSpriteRenderer(path: string) {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("...", x + s / 2, y + s / 2);
-      img.onload = () => {};
     }
   };
 }
@@ -53,35 +52,6 @@ function drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number, s: numbe
   ctx.moveTo(x + s - inner, y + inner);
   ctx.lineTo(x + inner, y + s - inner);
   ctx.stroke();
-}
-
-function drawSawblade(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
-  const cx = x + s / 2;
-  const cy = y + s / 2;
-  const r = s / 2 - 2;
-  const teeth = 10;
-  ctx.fillStyle = "#2a0a1e";
-  ctx.beginPath();
-  for (let i = 0; i < teeth; i++) {
-    const a1 = (i / teeth) * Math.PI * 2 - Math.PI / 2;
-    const a2 = ((i + 0.5) / teeth) * Math.PI * 2 - Math.PI / 2;
-    if (i === 0) ctx.moveTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
-    else ctx.lineTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
-    ctx.lineTo(cx + Math.cos(a2) * r * 0.72, cy + Math.sin(a2) * r * 0.72);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = "#e84393";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = "#e84393";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#1a0612";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.09, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 function drawRing(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
@@ -121,44 +91,6 @@ function drawOrb(ctx: CanvasRenderingContext2D, x: number, y: number, s: number)
   ctx.strokeStyle = "#b8860b";
   ctx.lineWidth = 1.5;
   ctx.stroke();
-}
-
-function drawSpeedPortal(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, s: number,
-  color: string, arrows: number, label: string
-) {
-  const cx = x + s / 2;
-  const cy = y + s / 2;
-  ctx.fillStyle = color + "30";
-  ctx.beginPath();
-  ctx.moveTo(cx, y + 2);
-  ctx.lineTo(x + s - 2, cy);
-  ctx.lineTo(cx, y + s - 2);
-  ctx.lineTo(x + 2, cy);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = "#fff";
-  const aW = 5;
-  const totalW = arrows * aW + (arrows - 1) * 1;
-  const startX = cx - totalW / 2;
-  for (let i = 0; i < arrows; i++) {
-    const ax = startX + i * (aW + 1);
-    ctx.beginPath();
-    ctx.moveTo(ax + aW, cy);
-    ctx.lineTo(ax, cy - 4);
-    ctx.lineTo(ax, cy + 4);
-    ctx.closePath();
-    ctx.fill();
-  }
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.font = `bold ${Math.floor(s * 0.18)}px monospace`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  ctx.fillText(label, cx, y + s - 11);
 }
 
 function drawModePortal(
@@ -208,15 +140,8 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   spike_blue:        { label: "Spike \u25B2",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue.png")) },
   spike_blue_down:   { label: "Spike \u25BC",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue_down.png")) },
   block:             { label: "Block",         color: "#d63384", render: drawBlock },
-  sawblade:          { label: "Saw",           color: "#e84393", render: drawSawblade },
   ring:              { label: "Ring",          color: "#00e5ff", render: drawRing },
   orb:               { label: "Orb",           color: "#ffd700", render: drawOrb },
-  speed_slow:        { label: "Slow",          color: "#3b82f6", render: (c, x, y, s) => drawSpeedPortal(c, x, y, s, "#3b82f6", 1, "0.5x") },
-  speed_normal:      { label: "Normal",        color: "#22c55e", render: (c, x, y, s) => drawSpeedPortal(c, x, y, s, "#22c55e", 1, "1x") },
-  speed_fast:        { label: "Fast",          color: "#f59e0b", render: (c, x, y, s) => drawSpeedPortal(c, x, y, s, "#f59e0b", 2, "2x") },
-  speed_vfast:       { label: "V.Fast",        color: "#ef4444", render: (c, x, y, s) => drawSpeedPortal(c, x, y, s, "#ef4444", 3, "3x") },
-  speed_sfast:       { label: "S.Fast",        color: "#a855f7", render: (c, x, y, s) => drawSpeedPortal(c, x, y, s, "#a855f7", 4, "4x") },
-  gm_cube:           { label: "Cube",          color: "#22d3ee", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#22d3ee", "\u25A0", false) },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
   gm_wave_mini:      { label: "Wave M",        color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", true) },
 };
@@ -228,10 +153,8 @@ export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
   { label: "Purple", items: ["spike_purple", "spike_purple_down"] },
   { label: "Green", items: ["spike_green", "spike_green_down"] },
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },
-  { label: "Hazards", items: ["sawblade"] },
   { label: "Triggers", items: ["ring", "orb"] },
-  { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
-  { label: "Mode", items: ["gm_cube", "gm_wave", "gm_wave_mini"] },
+  { label: "Mode", items: ["gm_wave", "gm_wave_mini"] },
   { label: "", items: ["eraser"] },
 ];
 
