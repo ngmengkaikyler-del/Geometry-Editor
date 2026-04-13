@@ -16,6 +16,7 @@ const MODE_COLORS: Record<PlayableMode, string> = {
   ship: "#a78bfa",
   spider: "#9ca3af",
   wave: "#ff3aba",
+  mini_wave: "#ff3aba",
 };
 
 const MODE_SHAPES: Record<PlayableMode, string> = {
@@ -23,7 +24,10 @@ const MODE_SHAPES: Record<PlayableMode, string> = {
   ship: "triangle",
   spider: "diamond",
   wave: "slash",
+  mini_wave: "slash",
 };
+
+const MINI_WAVE_DRAW_SCALE = 0.55;
 
 const GROUND_DARK = "#0a0614";
 const GROUND_LIGHT = "#12081e";
@@ -116,10 +120,11 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const trail = trailRef.current;
     const worldCx = p.worldX + PLAYER_OFFSET + PLAYER_W / 2;
     trail.push({ x: worldCx, y: cy });
-    const maxTrailLen = p.mode === "wave" ? 120 : 12;
+    const isWave = p.mode === "wave" || p.mode === "mini_wave";
+    const maxTrailLen = isWave ? 120 : 12;
     while (trail.length > maxTrailLen) trail.shift();
 
-    if (p.mode === "wave" && trail.length >= 2) {
+    if (isWave && trail.length >= 2) {
       ctx.save();
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -241,6 +246,13 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         break;
       }
       case "slash": {
+        const miniScale = p.mode === "mini_wave" ? MINI_WAVE_DRAW_SCALE : 1;
+        if (miniScale !== 1) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.scale(miniScale, miniScale);
+          ctx.translate(-cx, -cy);
+        }
         const waveR = PLAYER_W * 0.48;
         ctx.shadowColor = color;
         ctx.shadowBlur = 14;
@@ -292,6 +304,9 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.beginPath();
         ctx.ellipse(eyeRightX, eyeY, eyeW * 0.5, eyeH * 0.5, 0, 0, Math.PI * 2);
         ctx.stroke();
+        if (miniScale !== 1) {
+          ctx.restore();
+        }
         break;
       }
     }

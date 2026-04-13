@@ -1,6 +1,6 @@
 import type { LevelObject } from "../types";
 
-export type PlayableMode = "cube" | "ship" | "spider" | "wave";
+export type PlayableMode = "cube" | "ship" | "spider" | "wave" | "mini_wave";
 
 const TILE = 40;
 const COLS = 500;
@@ -18,6 +18,8 @@ const SHIP_THRUST = -2200;
 const SHIP_GRAVITY = 1400;
 const SHIP_MAX_VY = 500;
 const WAVE_VY_RATIO = 1;
+const MINI_WAVE_VY_RATIO = 1.6;
+const MINI_WAVE_SCALE = 0.55;
 
 const SPEED_MULTIPLIERS: Record<string, number> = {
   speed_slow: 0.8,
@@ -30,10 +32,14 @@ const SPEED_MULTIPLIERS: Record<string, number> = {
 const GAMEMODE_MAP: Record<string, PlayableMode> = {
   gm_cube: "cube",
   gm_wave: "wave",
-  gm_wave_mini: "wave",
+  gm_wave_mini: "mini_wave",
 };
 
 const DASH_ORB_TYPES = new Set(["dash_green", "dash_pink"]);
+
+function isWaveMode(mode: PlayableMode): boolean {
+  return mode === "wave" || mode === "mini_wave";
+}
 
 export interface PlayerState {
   worldX: number;
@@ -387,6 +393,24 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
       p.grounded = false;
       break;
     }
+    case "mini_wave": {
+      if (p.dashTimer > 0) {
+        p.dashTimer -= realDt;
+        p.vy = p.dashDirection;
+        if (p.dashTimer <= 0) {
+          p.dashTimer = 0;
+        }
+      } else {
+        const waveVy = scrollSpeed * MINI_WAVE_VY_RATIO;
+        if (holding) {
+          p.vy = -waveVy;
+        } else {
+          p.vy = waveVy;
+        }
+      }
+      p.grounded = false;
+      break;
+    }
   }
 
   p.y += p.vy * realDt;
@@ -395,7 +419,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   let by = p.y + PLAYER_OFFSET;
 
   if (isSolid(grid, bx, by, PLAYER_W, PLAYER_H)) {
-    if (p.mode === "wave") {
+    if (isWaveMode(p.mode)) {
       if (p.vy > 0) {
         const bottomRow = Math.floor((by + PLAYER_H - 0.01) / TILE);
         p.y = bottomRow * TILE - PLAYER_H - PLAYER_OFFSET;
@@ -420,8 +444,8 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   bx = p.worldX + PLAYER_OFFSET;
   by = p.y + PLAYER_OFFSET;
 
-  if (p.mode === "wave") {
-    // wave passes over ramps
+  if (isWaveMode(p.mode)) {
+    // wave/mini_wave passes over ramps
   } else {
     const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
     if (rampHit && p.vy >= 0) {
@@ -438,7 +462,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   by = p.y + PLAYER_OFFSET;
 
   let groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
-  if (!groundBelow && p.mode !== "wave") {
+  if (!groundBelow && !isWaveMode(p.mode)) {
     const rampBelow = checkRampCollision(grid, bx, by + 2, PLAYER_W, PLAYER_H + 2);
     if (rampBelow) groundBelow = true;
   }
