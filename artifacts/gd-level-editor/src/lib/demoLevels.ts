@@ -18,7 +18,7 @@ function spikes(col: number, rows: number[]): LevelObject[] {
 }
 
 function rings(col: number, rows: number[]): LevelObject[] {
-  return rows.map(r => ({ x: col, y: r, type: "ring" }));
+  return rows.map(r => ({ x: col, y: r, type: "dash_green" }));
 }
 
 function corridor(startCol: number, path: number[], gapSize: number): LevelObject[] {
@@ -105,7 +105,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...spikes(5, [2]));
   objs.push(...blocks(6, [7, 8]));
   objs.push(...spikes(6, [6]));
-  objs.push({ x: 7, y: 4, type: "orb" });
+  objs.push({ x: 7, y: 4, type: "dash_pink" });
   objs.push(...blocks(8, [0, 1, 2, 3]));
   objs.push(...blocks(8, [7, 8]));
   objs.push(...spikes(8, [4]));
@@ -146,30 +146,30 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...blocks(80, [0, 1, 2]));
   objs.push(...blocks(80, [7, 8]));
   objs.push(...spikes(80, [3]));
-  objs.push({ x: 81, y: 5, type: "ring" });
+  objs.push({ x: 81, y: 5, type: "dash_green" });
   objs.push(...blocks(82, [1, 2]));
   objs.push(...blocks(82, [6, 7]));
-  objs.push({ x: 83, y: 3, type: "ring" });
+  objs.push({ x: 83, y: 3, type: "dash_green" });
   objs.push(...blocks(84, [0, 1]));
   objs.push(...blocks(84, [5, 6, 7, 8]));
   objs.push(...spikes(84, [4]));
-  objs.push({ x: 85, y: 2, type: "ring" });
+  objs.push({ x: 85, y: 2, type: "dash_green" });
   objs.push(...blocks(86, [2, 3]));
   objs.push(...blocks(86, [6, 7]));
-  objs.push({ x: 87, y: 4, type: "ring" });
+  objs.push({ x: 87, y: 4, type: "dash_green" });
   objs.push(...blocks(88, [0, 1, 2]));
   objs.push(...blocks(88, [7, 8]));
   objs.push(...spikes(88, [3]));
-  objs.push({ x: 89, y: 5, type: "ring" });
+  objs.push({ x: 89, y: 5, type: "dash_green" });
   objs.push(...blocks(90, [1]));
   objs.push(...blocks(90, [5]));
-  objs.push({ x: 90, y: 3, type: "ring" });
+  objs.push({ x: 90, y: 3, type: "dash_green" });
   objs.push(...blocks(92, [0, 1]));
   objs.push(...blocks(92, [6, 7, 8]));
   objs.push(...spikes(92, [5]));
   objs.push(...blocks(94, [2, 3]));
   objs.push(...blocks(94, [7, 8]));
-  objs.push({ x: 95, y: 5, type: "ring" });
+  objs.push({ x: 95, y: 5, type: "dash_green" });
 
   // ===== SECTION 9: Mini wave + fast (col 97) =====
   objs.push({ x: 97, y: 4, type: "speed_fast" });
@@ -229,7 +229,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...spikes(137, [3]));
   objs.push(...spikes(139, [5]));
 
-  objs.push({ x: 140, y: 4, type: "orb" });
+  objs.push({ x: 140, y: 4, type: "dash_pink" });
 
   // ===== SECTION 13: Super fast zigzags (cols 141-198) =====
   objs.push({ x: 141, y: 4, type: "speed_sfast" });
@@ -268,7 +268,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...blocks(c, [0, 1]));
     objs.push(...spikes(c, [2]));
   }
-  objs.push({ x: 234, y: 5, type: "ring" });
+  objs.push({ x: 234, y: 5, type: "dash_green" });
 
   objs.push(...blocks(235, [7, 8]));
   objs.push(...blocks(236, [6, 7, 8]));
@@ -277,7 +277,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...blocks(238, [6, 7, 8]));
   objs.push(...blocks(239, [7, 8]));
 
-  objs.push({ x: 240, y: 3, type: "ring" });
+  objs.push({ x: 240, y: 3, type: "dash_green" });
 
   for (let c = 241; c <= 244; c++) {
     objs.push(...blocks(c, [0, 1, 2]));
@@ -285,7 +285,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...spikes(c, [3]));
     objs.push(...spikes(c, [5]));
   }
-  objs.push({ x: 245, y: 4, type: "orb" });
+  objs.push({ x: 245, y: 4, type: "dash_pink" });
 
   for (let c = 246; c <= 249; c++) {
     const r = c % 2 === 0 ? [0, 1] : [7, 8];
@@ -301,8 +301,8 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...sawblade(255, 6));
   objs.push(...sawblade(258, 3));
   objs.push(...sawblade(261, 5));
-  objs.push({ x: 254, y: 4, type: "ring" });
-  objs.push({ x: 260, y: 4, type: "ring" });
+  objs.push({ x: 254, y: 4, type: "dash_green" });
+  objs.push({ x: 260, y: 4, type: "dash_green" });
 
   for (let c = 264; c <= 267; c++) {
     objs.push(...blocks(c, [0, 1]));
@@ -311,7 +311,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...spikes(264, [2]));
   objs.push(...spikes(267, [6]));
   objs.push(...sawblade(266, 4));
-  objs.push({ x: 268, y: 4, type: "orb" });
+  objs.push({ x: 268, y: 4, type: "dash_pink" });
 
   const vzig = [
     7, 6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6
@@ -327,15 +327,15 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...sawblade(c + 2, 7 - i));
   }
 
-  objs.push({ x: 283, y: 4, type: "ring" });
-  objs.push({ x: 287, y: 4, type: "ring" });
-  objs.push({ x: 291, y: 4, type: "ring" });
-  objs.push({ x: 295, y: 4, type: "ring" });
-  objs.push({ x: 299, y: 4, type: "ring" });
+  objs.push({ x: 283, y: 4, type: "dash_green" });
+  objs.push({ x: 287, y: 4, type: "dash_green" });
+  objs.push({ x: 291, y: 4, type: "dash_green" });
+  objs.push({ x: 295, y: 4, type: "dash_green" });
+  objs.push({ x: 299, y: 4, type: "dash_green" });
 
   // ===== SECTION 18: Speed orb section + block houses (cols 300-330) =====
   objs.push({ x: 300, y: 4, type: "speed_fast" });
-  objs.push({ x: 301, y: 4, type: "orb" });
+  objs.push({ x: 301, y: 4, type: "dash_pink" });
 
   objs.push(...blocks(303, [5, 6, 7, 8]));
   objs.push(...blocks(304, [4, 5, 6, 7, 8]));
@@ -345,7 +345,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...spikes(303, [4]));
   objs.push(...spikes(307, [4]));
 
-  objs.push({ x: 309, y: 3, type: "ring" });
+  objs.push({ x: 309, y: 3, type: "dash_green" });
 
   objs.push(...blocks(311, [0, 1, 2]));
   objs.push(...blocks(312, [0, 1, 2, 3]));
@@ -357,7 +357,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...sawblade(316, 6));
 
   objs.push({ x: 318, y: 4, type: "speed_vfast" });
-  objs.push({ x: 319, y: 4, type: "orb" });
+  objs.push({ x: 319, y: 4, type: "dash_pink" });
 
   objs.push(...blocks(321, [6, 7, 8]));
   objs.push(...blocks(322, [5, 6, 7, 8]));
@@ -385,7 +385,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...sawblade(335, 1));
   objs.push(...sawblade(338, 7));
 
-  objs.push({ x: 340, y: 4, type: "orb" });
+  objs.push({ x: 340, y: 4, type: "dash_pink" });
 
   objs.push(...blocks(342, [6, 7, 8]));
   objs.push(...blocks(343, [5, 6, 7, 8]));
@@ -404,21 +404,21 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
 
   objs.push(...diamond(354, 4, 2));
   objs.push(...sawblade(352, 1));
-  objs.push({ x: 357, y: 4, type: "ring" });
+  objs.push({ x: 357, y: 4, type: "dash_green" });
 
   objs.push(...diamond(360, 3, 2));
   objs.push(...sawblade(363, 7));
-  objs.push({ x: 358, y: 6, type: "orb" });
+  objs.push({ x: 358, y: 6, type: "dash_pink" });
 
   objs.push(...diamond(366, 5, 2));
   objs.push(...sawblade(364, 1));
-  objs.push({ x: 369, y: 3, type: "ring" });
+  objs.push({ x: 369, y: 3, type: "dash_green" });
 
   objs.push({ x: 371, y: 4, type: "speed_fast" });
 
   objs.push(...diamond(374, 4, 3));
-  objs.push({ x: 378, y: 2, type: "orb" });
-  objs.push({ x: 378, y: 6, type: "orb" });
+  objs.push({ x: 378, y: 2, type: "dash_pink" });
+  objs.push({ x: 378, y: 6, type: "dash_pink" });
 
   objs.push(...diamond(381, 2, 2));
   objs.push(...diamond(381, 6, 2));
@@ -434,21 +434,21 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...spikes(c, [i + 1]));
     if (8 - i - 1 >= 0) objs.push(...spikes(c, [7 - i]));
   }
-  objs.push({ x: 395, y: 4, type: "orb" });
+  objs.push({ x: 395, y: 4, type: "dash_pink" });
 
   for (let i = 0; i < 4; i++) {
     const c = 396 + i * 2;
     objs.push(...blocks(c, [3 - i, 5 + i]));
     objs.push(...blocks(c + 1, [3 - i, 5 + i]));
   }
-  objs.push({ x: 404, y: 4, type: "ring" });
+  objs.push({ x: 404, y: 4, type: "dash_green" });
 
   // ===== SECTION 22: Diagonal stripes (cols 406-430) =====
   objs.push({ x: 406, y: 4, type: "speed_fast" });
 
   for (let i = 0; i < 4; i++) {
     objs.push(...diagonalStripe(407 + i * 6, 0, 5, 1));
-    objs.push({ x: 409 + i * 6, y: i % 2 === 0 ? 6 : 1, type: "orb" });
+    objs.push({ x: 409 + i * 6, y: i % 2 === 0 ? 6 : 1, type: "dash_pink" });
   }
 
   for (let i = 0; i < 3; i++) {
@@ -499,7 +499,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   objs.push(...blocks(475, [0, 1]));
 
   objs.push({ x: 476, y: 4, type: "speed_vfast" });
-  objs.push({ x: 477, y: 4, type: "orb" });
+  objs.push({ x: 477, y: 4, type: "dash_pink" });
 
   // ===== SECTION 25: Dense finale — diamond grid + sawblades + rings (cols 478-520) =====
   objs.push({ x: 478, y: 4, type: "speed_sfast" });
@@ -509,7 +509,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...diamond(c, 4, 1));
     objs.push(...sawblade(c + 2, 2));
     objs.push(...sawblade(c + 2, 6));
-    objs.push({ x: c + 3, y: 4, type: "ring" });
+    objs.push({ x: c + 3, y: 4, type: "dash_green" });
   }
 
   objs.push(...blocks(519, [0, 1, 2]));
@@ -524,7 +524,7 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     const c = 521 + i * 3;
     objs.push(...sawblade(c, 1 + i % 3));
     objs.push(...sawblade(c + 1, 6 - i % 3));
-    objs.push({ x: c + 2, y: 4, type: "ring" });
+    objs.push({ x: c + 2, y: 4, type: "dash_green" });
   }
 
   objs.push(...blocks(540, [0, 1, 2, 3]));
@@ -538,8 +538,8 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
     objs.push(...sawblade(c + 3, 7));
   }
 
-  objs.push({ x: 557, y: 4, type: "ring" });
-  objs.push({ x: 558, y: 4, type: "orb" });
+  objs.push({ x: 557, y: 4, type: "dash_green" });
+  objs.push({ x: 558, y: 4, type: "dash_pink" });
 
   for (let c = 559; c <= 562; c++) {
     objs.push(...blocks(c, [0, 1, 2, 3]));

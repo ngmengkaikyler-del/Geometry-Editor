@@ -33,6 +33,8 @@ const GAMEMODE_MAP: Record<string, PlayableMode> = {
   gm_wave_mini: "wave",
 };
 
+const DASH_ORB_TYPES = new Set(["dash_green", "dash_pink"]);
+
 export interface PlayerState {
   worldX: number;
   y: number;
@@ -86,7 +88,7 @@ function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
       solids.add(k);
     } else if (HAZARD_TYPES.has(obj.type)) {
       hazards.add(k);
-    } else if (SPEED_TYPES.has(obj.type) || GAMEMODE_TYPES.has(obj.type)) {
+    } else if (SPEED_TYPES.has(obj.type) || GAMEMODE_TYPES.has(obj.type) || DASH_ORB_TYPES.has(obj.type)) {
       portals.set(k, obj);
     }
   }
@@ -165,6 +167,15 @@ function checkPortals(grid: CollisionGrid, player: PlayerState) {
     if (newMode && newMode !== player.mode) {
       player.mode = newMode;
       player.vy = 0;
+    }
+  }
+  if (DASH_ORB_TYPES.has(portal.type)) {
+    if (portal.type === "dash_green") {
+      player.vy = 0;
+      player.speedMultiplier = Math.max(player.speedMultiplier, 1.8);
+    } else if (portal.type === "dash_pink") {
+      player.vy = -400;
+      player.speedMultiplier = Math.max(player.speedMultiplier, 1.5);
     }
   }
 }

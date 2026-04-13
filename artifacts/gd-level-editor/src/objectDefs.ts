@@ -54,45 +54,6 @@ function drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number, s: numbe
   ctx.stroke();
 }
 
-function drawRing(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
-  const cx = x + s / 2;
-  const cy = y + s / 2;
-  const r = s / 2 - 5;
-  ctx.shadowColor = "#00e5ff";
-  ctx.shadowBlur = 6;
-  ctx.strokeStyle = "#00e5ff";
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "rgba(0,229,255,0.35)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 4, 0, Math.PI * 2);
-  ctx.stroke();
-}
-
-function drawOrb(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
-  const cx = x + s / 2;
-  const cy = y + s / 2;
-  const r = s / 2 - 5;
-  const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, 1, cx, cy, r);
-  grad.addColorStop(0, "#fffde0");
-  grad.addColorStop(0.3, "#ffd700");
-  grad.addColorStop(1, "#8b6914");
-  ctx.shadowColor = "#ffd700";
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "#b8860b";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-}
-
 function drawModePortal(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, s: number,
@@ -140,8 +101,8 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   spike_blue:        { label: "Spike \u25B2",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue.png")) },
   spike_blue_down:   { label: "Spike \u25BC",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue_down.png")) },
   block:             { label: "Block",         color: "#d63384", render: drawBlock },
-  ring:              { label: "Ring",          color: "#00e5ff", render: drawRing },
-  orb:               { label: "Orb",           color: "#ffd700", render: drawOrb },
+  dash_green:        { label: "Dash G",        color: "#00ff40", render: makeSpriteRenderer(spritePath("dash_green.png")) },
+  dash_pink:         { label: "Dash P",        color: "#ff40a0", render: makeSpriteRenderer(spritePath("dash_pink.png")) },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
   gm_wave_mini:      { label: "Wave M",        color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", true) },
   speed_slow:        { label: "Slow",          color: "#ff8c00", render: makeSpriteRenderer(spritePath("portal_slow.png")) },
@@ -158,7 +119,7 @@ export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
   { label: "Purple", items: ["spike_purple", "spike_purple_down"] },
   { label: "Green", items: ["spike_green", "spike_green_down"] },
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },
-  { label: "Triggers", items: ["ring", "orb"] },
+  { label: "Dash Orbs", items: ["dash_green", "dash_pink"] },
   { label: "Mode", items: ["gm_wave", "gm_wave_mini"] },
   { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
   { label: "", items: ["eraser"] },
