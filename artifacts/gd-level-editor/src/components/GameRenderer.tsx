@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from "react";
-import type { LevelObject, CustomImage } from "../types";
+import type { LevelObject, CustomImage, WaveKillSettings } from "../types";
+import { DEFAULT_WAVE_KILL } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 import type { GameState, PlayableMode } from "../lib/gameEngine";
 import { TILE, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, stepGame, createInitialState, computeLevelWidth, VIEWPORT_W, VIEWPORT_H } from "../lib/gameEngine";
@@ -9,6 +10,7 @@ interface GameRendererProps {
   customImages: CustomImage[];
   startMode: PlayableMode;
   onStop: () => void;
+  waveKill?: WaveKillSettings;
 }
 
 const MODE_COLORS: Record<PlayableMode, string> = {
@@ -66,7 +68,7 @@ function generateStars(count: number): Star[] {
   return stars;
 }
 
-export function GameRenderer({ objects, customImages, startMode, onStop }: GameRendererProps) {
+export function GameRenderer({ objects, customImages, startMode, onStop, waveKill }: GameRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<GameState>(createInitialState(startMode));
   const holdingRef = useRef(false);
@@ -413,44 +415,32 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     }
 
     for (const obj of objects) {
-      const screenObjX = obj.x * TILE - camX;
-      const py = obj.y * TILE;
-      if (screenObjX < -TILE || screenObjX > w + TILE) continue;
+      const sc = obj.scale ?? 1;
+      const drawSize = TILE * sc;
+      const cx = obj.x * TILE + TILE / 2 - camX;
+      const cy = obj.y * TILE + TILE / 2;
+      const dx = cx - drawSize / 2;
+      const dy = cy - drawSize / 2;
+      if (dx < -drawSize || dx > w + drawSize) continue;
 
       let rot = obj.rotation ?? 0;
       if (obj.type === "sawblade") {
         rot += (time * 0.1) % 360;
       }
+      ctx.save();
+      ctx.translate(cx, cy);
+      if (rot) ctx.rotate((rot * Math.PI) / 180);
+      if (sc !== 1) ctx.scale(sc, sc);
+      ctx.translate(-TILE / 2, -TILE / 2);
       if (isBuiltinType(obj.type)) {
-        if (rot) {
-          const ocx = screenObjX + TILE / 2;
-          const ocy = py + TILE / 2;
-          ctx.save();
-          ctx.translate(ocx, ocy);
-          ctx.rotate((rot * Math.PI) / 180);
-          ctx.translate(-ocx, -ocy);
-          OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
-          ctx.restore();
-        } else {
-          OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
-        }
+        OBJECT_DEFS[obj.type].render(ctx, 0, 0, TILE);
       } else {
         const custom = imgMap.get(obj.type);
         if (custom) {
-          if (rot) {
-            const ocx = screenObjX + TILE / 2;
-            const ocy = py + TILE / 2;
-            ctx.save();
-            ctx.translate(ocx, ocy);
-            ctx.rotate((rot * Math.PI) / 180);
-            ctx.translate(-ocx, -ocy);
-            ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
-            ctx.restore();
-          } else {
-            ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
-          }
+          ctx.drawImage(custom.image, 0, 0, TILE, TILE);
         }
       }
+      ctx.restore();
     }
   }, [objects]);
 
@@ -502,7 +492,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       lastTimeRef.current = time;
 
       stateRef.current.holding = holdingRef.current;
-      stateRef.current = stepGame(stateRef.current, dt, objects);
+      stateRef.current = stepGame(stateRef.current, dt, objects, waveKill);
 
       const p = stateRef.current.player;
       const camX = stateRef.current.cameraX;

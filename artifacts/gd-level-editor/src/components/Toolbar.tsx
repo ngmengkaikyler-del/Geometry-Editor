@@ -1,4 +1,4 @@
-import type { ToolType, BuiltinObjectType } from "../types";
+import type { ToolType, BuiltinObjectType, WaveKillSettings } from "../types";
 import { ROTATABLE_TYPES } from "../types";
 import { TOOLBAR_GROUPS, OBJECT_DEFS } from "../objectDefs";
 import type { PlayableMode } from "../lib/gameEngine";
@@ -20,6 +20,12 @@ interface ToolbarProps {
   onLoadDemo: () => void;
   rotation: number;
   onRotationChange: (r: number) => void;
+  scale: number;
+  onScaleChange: (s: number) => void;
+  waveKill: WaveKillSettings;
+  onWaveKillChange: (wk: WaveKillSettings) => void;
+  showSettings: boolean;
+  onToggleSettings: () => void;
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -81,6 +87,12 @@ export function Toolbar({
   onLoadDemo,
   rotation,
   onRotationChange,
+  scale,
+  onScaleChange,
+  waveKill,
+  onWaveKillChange,
+  showSettings,
+  onToggleSettings,
 }: ToolbarProps) {
   const showRotation = ROTATABLE_TYPES.has(selected);
   return (
@@ -312,6 +324,107 @@ export function Toolbar({
               {"\u21BB"}
             </button>
           </div>
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "2px",
+          marginLeft: "4px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "8px",
+            color: "rgba(255,255,255,0.3)",
+            fontFamily: "monospace",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+          }}
+        >
+          Scale
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+          <input
+            type="range"
+            min="0.5"
+            max="3"
+            step="0.25"
+            value={scale}
+            onChange={(e) => onScaleChange(parseFloat(e.target.value))}
+            style={{ width: "60px", accentColor: "#a78bfa" }}
+          />
+          <span
+            style={{
+              fontSize: "10px",
+              color: "#a78bfa",
+              fontFamily: "monospace",
+              fontWeight: 700,
+              minWidth: "28px",
+              textAlign: "center",
+            }}
+          >
+            {scale}x
+          </span>
+        </div>
+      </div>
+
+      <button
+        onClick={onToggleSettings}
+        title="Wave Kill Settings"
+        style={{
+          padding: "4px 8px",
+          background: showSettings ? "rgba(168,85,247,0.3)" : "rgba(255,255,255,0.05)",
+          border: `1px solid ${showSettings ? "rgba(168,85,247,0.5)" : "rgba(255,255,255,0.15)"}`,
+          borderRadius: "4px",
+          color: showSettings ? "#c084fc" : "#9ca3af",
+          cursor: "pointer",
+          fontSize: "10px",
+          fontFamily: "monospace",
+          fontWeight: 600,
+        }}
+      >
+        {"\u2699"} WAVE
+      </button>
+
+      {showSettings && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "4px 8px",
+            background: "rgba(168,85,247,0.08)",
+            border: "1px solid rgba(168,85,247,0.2)",
+            borderRadius: "4px",
+          }}
+        >
+          <span style={{ fontSize: "8px", color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>KILLS:</span>
+          {(["block", "spike", "sawblade", "ramp", "ceiling", "floor"] as const).map((key) => (
+            <label
+              key={key}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "2px",
+                cursor: "pointer",
+                fontSize: "9px",
+                color: waveKill[key] ? "#c084fc" : "#6b7280",
+                fontFamily: "monospace",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={waveKill[key]}
+                onChange={() => onWaveKillChange({ ...waveKill, [key]: !waveKill[key] })}
+                style={{ width: "12px", height: "12px", accentColor: "#a855f7" }}
+              />
+              {key}
+            </label>
+          ))}
         </div>
       )}
 

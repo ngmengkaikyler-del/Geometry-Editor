@@ -57,6 +57,7 @@ interface LevelEditorProps {
   syncTime: boolean;
   currentMusicTime: number;
   currentRotation: number;
+  currentScale: number;
 }
 
 function formatTimeBadge(t: number): string {
@@ -137,6 +138,7 @@ export function LevelEditor({
   syncTime,
   currentMusicTime,
   currentRotation,
+  currentScale,
 }: LevelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -304,34 +306,44 @@ export function LevelEditor({
       }
 
       for (const obj of objects) {
-        const px = obj.x * TILE_SIZE;
-        const py = oY + obj.y * TILE_SIZE;
+        const sc = obj.scale ?? 1;
+        const cx = obj.x * TILE_SIZE + TILE_SIZE / 2;
+        const cy = oY + obj.y * TILE_SIZE + TILE_SIZE / 2;
         const rot = obj.rotation ?? 0;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        if (rot) ctx.rotate((rot * Math.PI) / 180);
+        if (sc !== 1) ctx.scale(sc, sc);
+        ctx.translate(-TILE_SIZE / 2, -TILE_SIZE / 2);
 
         if (isBuiltinType(obj.type)) {
           const def = OBJECT_DEFS[obj.type];
-          renderWithRotation(ctx, px, py, TILE_SIZE, rot, def.render);
+          def.render(ctx, 0, 0, TILE_SIZE);
         } else {
           const custom = imgMap.get(obj.type);
           if (custom) {
-            ctx.drawImage(custom.image, px, py, TILE_SIZE, TILE_SIZE);
+            ctx.drawImage(custom.image, 0, 0, TILE_SIZE, TILE_SIZE);
           } else {
             ctx.fillStyle = "rgba(255,0,255,0.3)";
-            ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+            ctx.fillRect(1, 1, TILE_SIZE - 2, TILE_SIZE - 2);
             ctx.fillStyle = "#fff";
             ctx.font = "8px monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("?", px + TILE_SIZE / 2, py + TILE_SIZE / 2);
+            ctx.fillText("?", TILE_SIZE / 2, TILE_SIZE / 2);
           }
         }
+        ctx.restore();
 
         if (obj.time !== undefined) {
           const label = formatTimeBadge(obj.time);
           ctx.font = "bold 7px monospace";
           const tw = ctx.measureText(label).width + 4;
-          const bx = px + TILE_SIZE - tw - 1;
-          const by = py + 1;
+          const badgePx = obj.x * TILE_SIZE;
+          const badgePy = oY + obj.y * TILE_SIZE;
+          const bx = badgePx + TILE_SIZE - tw - 1;
+          const by = badgePy + 1;
           ctx.fillStyle = "rgba(124,58,237,0.85)";
           ctx.beginPath();
           ctx.roundRect(bx, by, tw, 10, 2);
@@ -407,13 +419,16 @@ export function LevelEditor({
         if (currentRotation) {
           newObj.rotation = currentRotation;
         }
+        if (currentScale !== 1) {
+          newObj.scale = currentScale;
+        }
         if (syncTime) {
           newObj.time = Math.round(currentMusicTime * 100) / 100;
         }
         onObjectsChange([...objects, newObj]);
       }
     },
-    [selectedTool, objects, onObjectsChange, syncTime, currentMusicTime, currentRotation]
+    [selectedTool, objects, onObjectsChange, syncTime, currentMusicTime, currentRotation, currentScale]
   );
 
   const deleteAt = useCallback(

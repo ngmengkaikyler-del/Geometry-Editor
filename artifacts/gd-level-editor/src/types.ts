@@ -27,7 +27,26 @@ export interface LevelObject {
   type: string;
   rotation?: number;
   time?: number;
+  scale?: number;
 }
+
+export interface WaveKillSettings {
+  block: boolean;
+  spike: boolean;
+  sawblade: boolean;
+  ramp: boolean;
+  ceiling: boolean;
+  floor: boolean;
+}
+
+export const DEFAULT_WAVE_KILL: WaveKillSettings = {
+  block: true,
+  spike: true,
+  sawblade: true,
+  ramp: false,
+  ceiling: false,
+  floor: false,
+};
 
 export const ROTATABLE_TYPES = new Set([
   "block", "ramp",

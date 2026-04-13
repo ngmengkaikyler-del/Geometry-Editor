@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
-import { ROTATABLE_TYPES } from "../types";
+import type { LevelObject, ToolType, CustomImage, MusicTrack, WaveKillSettings } from "../types";
+import { ROTATABLE_TYPES, DEFAULT_WAVE_KILL } from "../types";
 import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
@@ -61,6 +61,9 @@ export default function EditorPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [startMode, setStartMode] = useState<PlayableMode>("cube");
   const [currentRotation, setCurrentRotation] = useState(0);
+  const [currentScale, setCurrentScale] = useState(1);
+  const [waveKill, setWaveKill] = useState<WaveKillSettings>({ ...DEFAULT_WAVE_KILL });
+  const [showSettings, setShowSettings] = useState(false);
   const dragCounterRef = useRef(0);
 
   useEffect(() => {
@@ -300,6 +303,7 @@ export default function EditorPage() {
             customImages={customImages}
             startMode={startMode}
             onStop={() => setIsPlaying(false)}
+            waveKill={waveKill}
           />
         </div>
       </div>
@@ -386,6 +390,12 @@ export default function EditorPage() {
         onLoadDemo={handleLoadDemo}
         rotation={currentRotation}
         onRotationChange={setCurrentRotation}
+        scale={currentScale}
+        onScaleChange={setCurrentScale}
+        waveKill={waveKill}
+        onWaveKillChange={setWaveKill}
+        showSettings={showSettings}
+        onToggleSettings={() => setShowSettings((v) => !v)}
       />
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <CustomImageSidebar
@@ -424,6 +434,7 @@ export default function EditorPage() {
             syncTime={syncTime}
             currentMusicTime={currentMusicTime}
             currentRotation={ROTATABLE_TYPES.has(selectedTool) ? currentRotation : 0}
+            currentScale={currentScale}
           />
         </div>
       </div>
