@@ -97,6 +97,39 @@ function drawModePortal(
   }
 }
 
+function drawRamp(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
+  const m = 1;
+  ctx.fillStyle = "#2a0a20";
+  ctx.beginPath();
+  ctx.moveTo(x + m, y + s - m);
+  ctx.lineTo(x + s - m, y + s - m);
+  ctx.lineTo(x + s - m, y + m);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "#d63384";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x + m, y + s - m);
+  ctx.lineTo(x + s - m, y + s - m);
+  ctx.lineTo(x + s - m, y + m);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(214,51,132,0.2)";
+  ctx.lineWidth = 0.5;
+  const steps = 4;
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const lx = x + m + t * (s - m * 2);
+    const ly = y + s - m - t * (s - m * 2);
+    ctx.beginPath();
+    ctx.moveTo(lx, y + s - m);
+    ctx.lineTo(lx, ly);
+    ctx.stroke();
+  }
+}
+
 const BASE = import.meta.env.BASE_URL ?? "/";
 const spritePath = (name: string) => `${BASE}sprites/${name}`;
 
@@ -108,6 +141,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   spike_blue:        { label: "Spike \u25B2",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue.png")) },
   spike_blue_down:   { label: "Spike \u25BC",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue_down.png")) },
   block:             { label: "Block",         color: "#d63384", render: drawBlock },
+  ramp:              { label: "Ramp",          color: "#d63384", render: drawRamp },
   sawblade:          { label: "Cog",           color: "#ff2020", render: makeSpriteRenderer(spritePath("sawblade.png")) },
   dash_green:        { label: "Dash G",        color: "#00ff40", render: makeSpriteRenderer(spritePath("dash_green.png")) },
   dash_pink:         { label: "Dash P",        color: "#ff40a0", render: makeSpriteRenderer(spritePath("dash_pink.png")) },
@@ -123,7 +157,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
 export const BUILTIN_TYPES: BuiltinObjectType[] = Object.keys(OBJECT_DEFS) as BuiltinObjectType[];
 
 export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
-  { label: "Walls", items: ["block", "sawblade"] },
+  { label: "Walls", items: ["block", "ramp", "sawblade"] },
   { label: "Purple", items: ["spike_purple", "spike_purple_down"] },
   { label: "Green", items: ["spike_green", "spike_green_down"] },
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },

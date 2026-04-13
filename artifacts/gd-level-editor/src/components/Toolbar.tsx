@@ -24,6 +24,7 @@ interface ToolbarProps {
 
 const TOOL_ICONS: Record<string, string> = {
   block: "\u25A0",
+  ramp: "\u25E2",
   spike_purple: "\u25B2",
   spike_purple_down: "\u25BC",
   spike_green: "\u25B2",
@@ -45,6 +46,7 @@ const TOOL_ICONS: Record<string, string> = {
 
 const TOOL_COLORS: Record<string, string> = {
   block: "#d63384",
+  ramp: "#d63384",
   spike_purple: "#b844e0",
   spike_purple_down: "#b844e0",
   spike_green: "#44e060",

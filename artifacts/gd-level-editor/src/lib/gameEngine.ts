@@ -58,6 +58,7 @@ export interface GameState {
 }
 
 const SOLID_TYPES = new Set(["block"]);
+const RAMP_TYPE = "ramp";
 const HAZARD_TYPES = new Set([
   "spike", "spike_down", "sawblade",
   "spike_purple", "spike_purple_down",
@@ -74,18 +75,22 @@ function key(col: number, row: number) {
 interface CollisionGrid {
   solids: Set<string>;
   hazardObjects: LevelObject[];
+  ramps: Map<string, LevelObject>;
   portals: Map<string, LevelObject>;
 }
 
 function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
   const solids = new Set<string>();
   const hazardObjects: LevelObject[] = [];
+  const ramps = new Map<string, LevelObject>();
   const portals = new Map<string, LevelObject>();
 
   for (const obj of objects) {
     const k = key(obj.x, obj.y);
     if (SOLID_TYPES.has(obj.type)) {
       solids.add(k);
+    } else if (obj.type === RAMP_TYPE) {
+      ramps.set(k, obj);
     } else if (HAZARD_TYPES.has(obj.type)) {
       hazardObjects.push(obj);
     } else if (SPEED_TYPES.has(obj.type) || GAMEMODE_TYPES.has(obj.type) || DASH_ORB_TYPES.has(obj.type)) {
@@ -93,7 +98,65 @@ function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
     }
   }
 
-  return { solids, hazardObjects, portals };
+  return { solids, hazardObjects, ramps, portals };
+}
+
+function getRampSurfaceY(ramp: LevelObject, worldX: number, playerW: number): number | null {
+  const rot = ramp.rotation ?? 0;
+  const rx = ramp.x * TILE;
+  const ry = ramp.y * TILE;
+
+  const playerCenterX = worldX + playerW / 2;
+  const t = Math.max(0, Math.min(1, (playerCenterX - rx) / TILE));
+
+  let surfaceY: number;
+  switch (rot) {
+    case 0:
+      surfaceY = ry + TILE - t * TILE;
+      break;
+    case 90:
+      surfaceY = ry + t * TILE;
+      break;
+    case 180:
+      surfaceY = ry + t * TILE;
+      break;
+    case 270:
+      surfaceY = ry + TILE - t * TILE;
+      break;
+    default:
+      surfaceY = ry + TILE - t * TILE;
+  }
+  return surfaceY;
+}
+
+function checkRampCollision(
+  grid: CollisionGrid,
+  px: number, py: number, pw: number, ph: number
+): { surfaceY: number; ramp: LevelObject } | null {
+  const leftCol = Math.floor(px / TILE);
+  const rightCol = Math.floor((px + pw - 0.01) / TILE);
+  const bottomRow = Math.floor((py + ph - 0.01) / TILE);
+  const topRow = Math.floor(py / TILE);
+
+  let bestResult: { surfaceY: number; ramp: LevelObject } | null = null;
+
+  for (let c = leftCol; c <= rightCol; c++) {
+    for (let r = topRow; r <= bottomRow; r++) {
+      const ramp = grid.ramps.get(key(c, r));
+      if (!ramp) continue;
+
+      const surfaceY = getRampSurfaceY(ramp, px, pw);
+      if (surfaceY === null) continue;
+
+      const playerBottom = py + ph;
+      if (playerBottom > surfaceY && py < ramp.y * TILE + TILE) {
+        if (!bestResult || surfaceY < bestResult.surfaceY) {
+          bestResult = { surfaceY, ramp };
+        }
+      }
+    }
+  }
+  return bestResult;
 }
 
 const PLAYER_SCREEN_X = 160;
@@ -333,7 +396,24 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   bx = p.worldX + PLAYER_OFFSET;
   by = p.y + PLAYER_OFFSET;
 
-  const groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
+  const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
+  if (rampHit && p.vy >= 0) {
+    const newY = rampHit.surfaceY - PLAYER_H - PLAYER_OFFSET;
+    if (newY < p.y || (p.y - newY < TILE * 0.5)) {
+      p.y = newY;
+      p.vy = 0;
+      p.grounded = true;
+    }
+  }
+
+  bx = p.worldX + PLAYER_OFFSET;
+  by = p.y + PLAYER_OFFSET;
+
+  let groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
+  if (!groundBelow) {
+    const rampBelow = checkRampCollision(grid, bx, by + 2, PLAYER_W, PLAYER_H + 2);
+    if (rampBelow) groundBelow = true;
+  }
   if (p.mode === "cube" || p.mode === "spider") {
     p.grounded = groundBelow;
   }

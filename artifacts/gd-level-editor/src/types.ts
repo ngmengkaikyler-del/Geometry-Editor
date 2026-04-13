@@ -6,6 +6,7 @@ export type BuiltinObjectType =
   | "spike_blue"
   | "spike_blue_down"
   | "block"
+  | "ramp"
   | "sawblade"
   | "dash_green"
   | "dash_pink"
@@ -28,7 +29,7 @@ export interface LevelObject {
 }
 
 export const ROTATABLE_TYPES = new Set([
-  "block",
+  "block", "ramp",
   "spike_purple", "spike_purple_down",
   "spike_green", "spike_green_down",
   "spike_blue", "spike_blue_down",
