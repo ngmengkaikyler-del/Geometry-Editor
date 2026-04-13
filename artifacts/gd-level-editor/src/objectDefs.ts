@@ -14,7 +14,14 @@ function makeSpriteRenderer(path: string) {
   const img = loadSprite(path);
   return (ctx: CanvasRenderingContext2D, x: number, y: number, s: number) => {
     if (img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, x, y, s, s);
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      const ratio = Math.min(s / iw, s / ih);
+      const dw = iw * ratio;
+      const dh = ih * ratio;
+      const dx = x + (s - dw) / 2;
+      const dy = y + (s - dh) / 2;
+      ctx.drawImage(img, dx, dy, dw, dh);
     } else {
       ctx.fillStyle = "rgba(255,0,255,0.3)";
       ctx.fillRect(x + 2, y + 2, s - 4, s - 4);
