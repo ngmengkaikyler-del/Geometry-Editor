@@ -22,8 +22,16 @@ export interface LevelObject {
   x: number;
   y: number;
   type: string;
+  rotation?: number;
   time?: number;
 }
+
+export const ROTATABLE_TYPES = new Set([
+  "block",
+  "spike_purple", "spike_purple_down",
+  "spike_green", "spike_green_down",
+  "spike_blue", "spike_blue_down",
+]);
 
 export interface ObjectDef {
   type: string;

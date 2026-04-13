@@ -360,12 +360,35 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       const py = obj.y * TILE;
       if (screenObjX < -TILE || screenObjX > w + TILE) continue;
 
+      const rot = obj.rotation ?? 0;
       if (isBuiltinType(obj.type)) {
-        OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
+        if (rot) {
+          const ocx = screenObjX + TILE / 2;
+          const ocy = py + TILE / 2;
+          ctx.save();
+          ctx.translate(ocx, ocy);
+          ctx.rotate((rot * Math.PI) / 180);
+          ctx.translate(-ocx, -ocy);
+          OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
+          ctx.restore();
+        } else {
+          OBJECT_DEFS[obj.type].render(ctx, screenObjX, py, TILE);
+        }
       } else {
         const custom = imgMap.get(obj.type);
         if (custom) {
-          ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
+          if (rot) {
+            const ocx = screenObjX + TILE / 2;
+            const ocy = py + TILE / 2;
+            ctx.save();
+            ctx.translate(ocx, ocy);
+            ctx.rotate((rot * Math.PI) / 180);
+            ctx.translate(-ocx, -ocy);
+            ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
+            ctx.restore();
+          } else {
+            ctx.drawImage(custom.image, screenObjX, py, TILE, TILE);
+          }
         }
       }
     }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
+import { ROTATABLE_TYPES } from "../types";
 import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
@@ -58,7 +59,22 @@ export default function EditorPage() {
   const [currentMusicTime, setCurrentMusicTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [startMode, setStartMode] = useState<PlayableMode>("cube");
+  const [currentRotation, setCurrentRotation] = useState(0);
   const dragCounterRef = useRef(0);
+
+  useEffect(() => {
+    const handleRotateKey = (e: KeyboardEvent) => {
+      if (isPlaying) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      if (e.key === "q" || e.key === "Q") {
+        setCurrentRotation((r) => ((r - 90) + 360) % 360);
+      } else if (e.key === "e" || e.key === "E") {
+        setCurrentRotation((r) => (r + 90) % 360);
+      }
+    };
+    window.addEventListener("keydown", handleRotateKey);
+    return () => window.removeEventListener("keydown", handleRotateKey);
+  }, [isPlaying]);
 
   useEffect(() => {
     Promise.all([loadAllAssets(), loadMusicTrack()])
@@ -197,7 +213,12 @@ export default function EditorPage() {
 
   const getHint = (): string => {
     if (BUILTIN_HINTS[selectedTool]) {
-      const base = BUILTIN_HINTS[selectedTool];
+      let base = BUILTIN_HINTS[selectedTool];
+      if (ROTATABLE_TYPES.has(selectedTool) && currentRotation !== 0) {
+        base += ` | Angle: ${currentRotation}\u00B0 (Q/E to rotate)`;
+      } else if (ROTATABLE_TYPES.has(selectedTool)) {
+        base += " | Q/E to rotate";
+      }
       if (syncTime) return `${base} | SYNC: objects stamped at ${currentMusicTime.toFixed(1)}s`;
       return base;
     }
@@ -362,6 +383,8 @@ export default function EditorPage() {
         onStartModeChange={setStartMode}
         onPlay={() => setIsPlaying(true)}
         onLoadDemo={handleLoadDemo}
+        rotation={currentRotation}
+        onRotationChange={setCurrentRotation}
       />
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <CustomImageSidebar
@@ -399,6 +422,7 @@ export default function EditorPage() {
             customImages={customImages}
             syncTime={syncTime}
             currentMusicTime={currentMusicTime}
+            currentRotation={ROTATABLE_TYPES.has(selectedTool) ? currentRotation : 0}
           />
         </div>
       </div>

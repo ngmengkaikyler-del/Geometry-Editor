@@ -56,6 +56,7 @@ interface LevelEditorProps {
   customImages: CustomImage[];
   syncTime: boolean;
   currentMusicTime: number;
+  currentRotation: number;
 }
 
 function formatTimeBadge(t: number): string {
@@ -108,6 +109,26 @@ function computeZones(objects: LevelObject[]): ZoneInfo[] {
   return zones;
 }
 
+function renderWithRotation(
+  ctx: CanvasRenderingContext2D,
+  px: number, py: number, size: number,
+  rotation: number,
+  renderFn: (ctx: CanvasRenderingContext2D, x: number, y: number, s: number) => void
+) {
+  if (!rotation) {
+    renderFn(ctx, px, py, size);
+    return;
+  }
+  const cx = px + size / 2;
+  const cy = py + size / 2;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.translate(-cx, -cy);
+  renderFn(ctx, px, py, size);
+  ctx.restore();
+}
+
 export function LevelEditor({
   selectedTool,
   objects,
@@ -115,6 +136,7 @@ export function LevelEditor({
   customImages,
   syncTime,
   currentMusicTime,
+  currentRotation,
 }: LevelEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -284,10 +306,11 @@ export function LevelEditor({
       for (const obj of objects) {
         const px = obj.x * TILE_SIZE;
         const py = oY + obj.y * TILE_SIZE;
+        const rot = obj.rotation ?? 0;
 
         if (isBuiltinType(obj.type)) {
           const def = OBJECT_DEFS[obj.type];
-          def.render(ctx, px, py, TILE_SIZE);
+          renderWithRotation(ctx, px, py, TILE_SIZE, rot, def.render);
         } else {
           const custom = imgMap.get(obj.type);
           if (custom) {
@@ -333,7 +356,7 @@ export function LevelEditor({
           ctx.fillStyle = `${def.color}44`;
           ctx.fillRect(hx, hy, TILE_SIZE, TILE_SIZE);
           ctx.globalAlpha = 0.5;
-          def.render(ctx, hx, hy, TILE_SIZE);
+          renderWithRotation(ctx, hx, hy, TILE_SIZE, currentRotation, def.render);
           ctx.globalAlpha = 1;
         } else {
           const custom = imgMap.get(selectedTool);
@@ -347,7 +370,7 @@ export function LevelEditor({
         }
       }
     },
-    [objects, hoverCell, selectedTool, customImageMap]
+    [objects, hoverCell, selectedTool, customImageMap, currentRotation]
   );
 
   useEffect(() => {
@@ -381,13 +404,16 @@ export function LevelEditor({
       const exists = objects.some((o) => o.x === col && o.y === row);
       if (!exists) {
         const newObj: LevelObject = { x: col, y: row, type: selectedTool };
+        if (currentRotation) {
+          newObj.rotation = currentRotation;
+        }
         if (syncTime) {
           newObj.time = Math.round(currentMusicTime * 100) / 100;
         }
         onObjectsChange([...objects, newObj]);
       }
     },
-    [selectedTool, objects, onObjectsChange, syncTime, currentMusicTime]
+    [selectedTool, objects, onObjectsChange, syncTime, currentMusicTime, currentRotation]
   );
 
   const deleteAt = useCallback(

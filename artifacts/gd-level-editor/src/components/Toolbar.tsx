@@ -1,4 +1,5 @@
 import type { ToolType, BuiltinObjectType } from "../types";
+import { ROTATABLE_TYPES } from "../types";
 import { TOOLBAR_GROUPS, OBJECT_DEFS } from "../objectDefs";
 import type { PlayableMode } from "../lib/gameEngine";
 
@@ -17,6 +18,8 @@ interface ToolbarProps {
   onStartModeChange: (mode: PlayableMode) => void;
   onPlay: () => void;
   onLoadDemo: () => void;
+  rotation: number;
+  onRotationChange: (r: number) => void;
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -72,7 +75,10 @@ export function Toolbar({
   onStartModeChange,
   onPlay,
   onLoadDemo,
+  rotation,
+  onRotationChange,
 }: ToolbarProps) {
+  const showRotation = ROTATABLE_TYPES.has(selected);
   return (
     <div
       style={{
@@ -215,6 +221,95 @@ export function Toolbar({
           </div>
         ))}
       </div>
+
+      {showRotation && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "2px",
+            marginLeft: "4px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "8px",
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "monospace",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Angle
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            <button
+              onClick={() => onRotationChange(((rotation - 90) + 360) % 360)}
+              title="Rotate left (Q)"
+              style={{
+                width: "22px",
+                height: "22px",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: "4px",
+                background: "rgba(255,255,255,0.05)",
+                color: "#9ca3af",
+                cursor: "pointer",
+                fontSize: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+              }}
+            >
+              {"\u21BA"}
+            </button>
+            <div
+              style={{
+                width: "32px",
+                height: "22px",
+                border: "1px solid rgba(250,204,21,0.4)",
+                borderRadius: "4px",
+                background: "rgba(250,204,21,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  color: "#facc15",
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                }}
+              >
+                {rotation}°
+              </span>
+            </div>
+            <button
+              onClick={() => onRotationChange((rotation + 90) % 360)}
+              title="Rotate right (E)"
+              style={{
+                width: "22px",
+                height: "22px",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: "4px",
+                background: "rgba(255,255,255,0.05)",
+                color: "#9ca3af",
+                cursor: "pointer",
+                fontSize: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
+              }}
+            >
+              {"\u21BB"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "6px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
