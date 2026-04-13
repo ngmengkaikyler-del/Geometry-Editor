@@ -6,6 +6,7 @@ export type BuiltinObjectType =
   | "spike_blue"
   | "spike_blue_down"
   | "block"
+  | "sawblade"
   | "dash_green"
   | "dash_pink"
   | "gm_wave"

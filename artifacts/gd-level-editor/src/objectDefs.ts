@@ -108,6 +108,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   spike_blue:        { label: "Spike \u25B2",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue.png")) },
   spike_blue_down:   { label: "Spike \u25BC",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue_down.png")) },
   block:             { label: "Block",         color: "#d63384", render: drawBlock },
+  sawblade:          { label: "Cog",           color: "#ff2020", render: makeSpriteRenderer(spritePath("sawblade.png")) },
   dash_green:        { label: "Dash G",        color: "#00ff40", render: makeSpriteRenderer(spritePath("dash_green.png")) },
   dash_pink:         { label: "Dash P",        color: "#ff40a0", render: makeSpriteRenderer(spritePath("dash_pink.png")) },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
@@ -122,7 +123,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
 export const BUILTIN_TYPES: BuiltinObjectType[] = Object.keys(OBJECT_DEFS) as BuiltinObjectType[];
 
 export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
-  { label: "Walls", items: ["block"] },
+  { label: "Walls", items: ["block", "sawblade"] },
   { label: "Purple", items: ["spike_purple", "spike_purple_down"] },
   { label: "Green", items: ["spike_green", "spike_green_down"] },
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },

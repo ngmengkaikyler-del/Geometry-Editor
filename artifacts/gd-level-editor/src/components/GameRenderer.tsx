@@ -395,7 +395,10 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       const py = obj.y * TILE;
       if (screenObjX < -TILE || screenObjX > w + TILE) continue;
 
-      const rot = obj.rotation ?? 0;
+      let rot = obj.rotation ?? 0;
+      if (obj.type === "sawblade") {
+        rot += (time * 0.1) % 360;
+      }
       if (isBuiltinType(obj.type)) {
         if (rot) {
           const ocx = screenObjX + TILE / 2;

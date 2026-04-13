@@ -27,6 +27,7 @@ const BUILTIN_HINTS: Record<string, string> = {
   orb: "Orb \u2014 yellow jump trigger",
   gm_wave: "Wave mode \u2014 hold=up, release=down, 45\u00B0 angle",
   gm_wave_mini: "Wave (Mini) \u2014 steeper angle, 2x sensitivity",
+  sawblade: "Sawblade cog \u2014 spinning hazard, kills on touch",
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 
