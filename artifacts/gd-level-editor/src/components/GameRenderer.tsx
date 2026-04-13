@@ -25,12 +25,20 @@ const MODE_SHAPES: Record<PlayableMode, string> = {
   wave: "slash",
 };
 
-const BG_COLOR_TOP = "#2d0a1e";
-const BG_COLOR_MID = "#4a0e2e";
-const BG_COLOR_BOT = "#6b1040";
-const GROUND_DARK = "#1a0612";
-const GROUND_LIGHT = "#2a0c1e";
+const GROUND_DARK = "#0a0614";
+const GROUND_LIGHT = "#12081e";
 const GROUND_TOP_LINE = "#e84393";
+
+function lerpColor(a: string, b: string, t: number): string {
+  const na = parseInt(a.replace("#", ""), 16);
+  const nb = parseInt(b.replace("#", ""), 16);
+  const ra = (na >> 16) & 0xff, ga = (na >> 8) & 0xff, ba = na & 0xff;
+  const rb = (nb >> 16) & 0xff, gb = (nb >> 8) & 0xff, bb = nb & 0xff;
+  const r = Math.round(ra + (rb - ra) * t);
+  const g = Math.round(ga + (gb - ga) * t);
+  const bl = Math.round(ba + (bb - ba) * t);
+  return `rgb(${r},${g},${bl})`;
+}
 
 interface Star {
   x: number;
@@ -297,11 +305,30 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const imgMap = imgMapRef.current;
     const groundY = (ROWS - 1) * TILE;
 
+    const pulse = 0.5 + 0.5 * Math.sin(time * 0.0012);
+    const bgTop = lerpColor("#0a0a2e", "#1a1000", pulse);
+    const bgMid = lerpColor("#0c1248", "#2a1a00", pulse);
+    const bgBot = lerpColor("#1a2060", "#3a2800", pulse);
+
     const grad = ctx.createLinearGradient(0, 0, 0, groundY);
-    grad.addColorStop(0, BG_COLOR_TOP);
-    grad.addColorStop(0.5, BG_COLOR_MID);
-    grad.addColorStop(1, BG_COLOR_BOT);
+    grad.addColorStop(0, bgTop);
+    grad.addColorStop(0.5, bgMid);
+    grad.addColorStop(1, bgBot);
     ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, groundY);
+
+    const glowPulse = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * 0.002));
+    const blueGlow = `rgba(50,100,255,${0.04 * glowPulse})`;
+    const yellowGlow = `rgba(255,220,50,${0.04 * (1 - glowPulse + 0.3)})`;
+    const radB = ctx.createRadialGradient(w * 0.3, groundY * 0.4, 0, w * 0.3, groundY * 0.4, groundY * 0.8);
+    radB.addColorStop(0, blueGlow);
+    radB.addColorStop(1, "transparent");
+    ctx.fillStyle = radB;
+    ctx.fillRect(0, 0, w, groundY);
+    const radY = ctx.createRadialGradient(w * 0.7, groundY * 0.6, 0, w * 0.7, groundY * 0.6, groundY * 0.8);
+    radY.addColorStop(0, yellowGlow);
+    radY.addColorStop(1, "transparent");
+    ctx.fillStyle = radY;
     ctx.fillRect(0, 0, w, groundY);
 
     const stars = starsRef.current;
@@ -309,7 +336,11 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       const sx = ((star.x - camX * star.speed) % (w + 20) + w + 20) % (w + 20);
       const twinkle = 0.5 + 0.5 * Math.sin(time * 0.001 * star.speed + star.x);
       const alpha = star.brightness * twinkle;
-      ctx.fillStyle = `rgba(255,182,216,${alpha})`;
+      const starPulse = 0.5 + 0.5 * Math.sin(time * 0.0008 + star.x * 0.01);
+      const sr = Math.round(180 + 75 * starPulse);
+      const sg = Math.round(180 + 40 * (1 - starPulse));
+      const sb = Math.round(100 + 155 * (1 - starPulse));
+      ctx.fillStyle = `rgba(${sr},${sg},${sb},${alpha})`;
       ctx.beginPath();
       ctx.arc(sx, star.y, star.size, 0, Math.PI * 2);
       ctx.fill();
@@ -320,26 +351,30 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const startCol = Math.max(0, Math.floor(camX / TILE));
     const endCol = Math.min(maxCol, Math.ceil((camX + w) / TILE) + 1);
 
+    const groundLineColor = lerpColor("#4060ff", "#ffd032", pulse);
+
     for (let c = startCol; c <= endCol; c++) {
       const gx = c * TILE - camX;
       const isEven = c % 2 === 0;
       ctx.fillStyle = isEven ? GROUND_DARK : GROUND_LIGHT;
       ctx.fillRect(gx, groundY, TILE, TILE);
 
-      ctx.strokeStyle = "rgba(255,105,180,0.06)";
+      ctx.strokeStyle = `rgba(100,130,255,${0.04 + 0.03 * pulse})`;
       ctx.lineWidth = 0.5;
       ctx.strokeRect(gx, groundY, TILE, TILE);
     }
 
-    ctx.fillStyle = GROUND_TOP_LINE;
+    ctx.fillStyle = groundLineColor;
     ctx.fillRect(0, groundY, w, 2);
-    ctx.fillStyle = "rgba(232,67,147,0.3)";
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = groundLineColor;
     ctx.fillRect(0, groundY + 2, w, 1);
+    ctx.globalAlpha = 1;
 
     ctx.fillStyle = GROUND_DARK;
     ctx.fillRect(0, groundY + TILE, w, h - groundY - TILE);
 
-    ctx.strokeStyle = "rgba(255,105,180,0.03)";
+    ctx.strokeStyle = `rgba(100,130,255,${0.02 + 0.02 * pulse})`;
     ctx.lineWidth = 0.5;
     for (let c = startCol; c <= endCol; c++) {
       const sx = c * TILE - camX;
@@ -543,7 +578,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   }, [objects, onStop, drawLevel, drawPlayer, startMode, restart]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center", background: "#1a0612" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center", background: "#06060e" }}>
       <canvas
         ref={canvasRef}
         width={VIEWPORT_W}
