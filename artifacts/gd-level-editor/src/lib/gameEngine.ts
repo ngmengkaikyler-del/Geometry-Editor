@@ -444,16 +444,16 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   bx = p.worldX + PLAYER_OFFSET;
   by = p.y + PLAYER_OFFSET;
 
-  if (isWaveMode(p.mode)) {
-    // wave/mini_wave passes over ramps
-  } else {
+  {
     const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
     if (rampHit && p.vy >= 0) {
       const newY = rampHit.surfaceY - PLAYER_H - PLAYER_OFFSET;
       if (newY < p.y || (p.y - newY < TILE * 0.5)) {
         p.y = newY;
         p.vy = 0;
-        p.grounded = true;
+        if (!isWaveMode(p.mode)) {
+          p.grounded = true;
+        }
       }
     }
   }
@@ -462,7 +462,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   by = p.y + PLAYER_OFFSET;
 
   let groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
-  if (!groundBelow && !isWaveMode(p.mode)) {
+  if (!groundBelow) {
     const rampBelow = checkRampCollision(grid, bx, by + 2, PLAYER_W, PLAYER_H + 2);
     if (rampBelow) groundBelow = true;
   }
