@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import type { LevelObject, CustomImage } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 import type { GameState, PlayableMode } from "../lib/gameEngine";
-import { TILE, COLS, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, stepGame, createInitialState, VIEWPORT_W, VIEWPORT_H } from "../lib/gameEngine";
+import { TILE, ROWS, PLAYER_W, PLAYER_H, PLAYER_OFFSET, stepGame, createInitialState, computeLevelWidth, VIEWPORT_W, VIEWPORT_H } from "../lib/gameEngine";
 
 interface GameRendererProps {
   objects: LevelObject[];
@@ -25,12 +25,12 @@ const MODE_SHAPES: Record<PlayableMode, string> = {
   wave: "slash",
 };
 
-const BG_COLOR_TOP = "#000428";
-const BG_COLOR_MID = "#001845";
-const BG_COLOR_BOT = "#002855";
-const GROUND_DARK = "#0a1628";
-const GROUND_LIGHT = "#0f2040";
-const GROUND_TOP_LINE = "#2563eb";
+const BG_COLOR_TOP = "#2d0a1e";
+const BG_COLOR_MID = "#4a0e2e";
+const BG_COLOR_BOT = "#6b1040";
+const GROUND_DARK = "#1a0612";
+const GROUND_LIGHT = "#2a0c1e";
+const GROUND_TOP_LINE = "#e84393";
 
 interface Star {
   x: number;
@@ -65,6 +65,11 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   const starsRef = useRef<Star[]>(generateStars(80));
   const trailRef = useRef<{x: number; y: number; alpha: number}[]>([]);
   const attemptFlashRef = useRef<number>(0);
+  const levelWidthRef = useRef<number>(computeLevelWidth(objects));
+
+  useEffect(() => {
+    levelWidthRef.current = computeLevelWidth(objects);
+  }, [objects]);
 
   const restart = useCallback(() => {
     stateRef.current = createInitialState(startMode);
@@ -105,7 +110,6 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     if (trail.length > 12) trail.shift();
     for (let i = 0; i < trail.length - 1; i++) {
       const t = trail[i];
-      const trailScreenX = t.x - (p.worldX - screenX - PLAYER_OFFSET - PLAYER_W / 2) + (screenX + PLAYER_OFFSET + PLAYER_W / 2 - t.x);
       ctx.fillStyle = `${color}${Math.floor(t.alpha * 40).toString(16).padStart(2, "0")}`;
       const sz = PLAYER_W * 0.5 * (i / trail.length);
       ctx.fillRect(t.x - sz / 2, t.y - sz / 2, sz, sz);
@@ -222,14 +226,16 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       const sx = ((star.x - camX * star.speed) % (w + 20) + w + 20) % (w + 20);
       const twinkle = 0.5 + 0.5 * Math.sin(time * 0.001 * star.speed + star.x);
       const alpha = star.brightness * twinkle;
-      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fillStyle = `rgba(255,182,216,${alpha})`;
       ctx.beginPath();
       ctx.arc(sx, star.y, star.size, 0, Math.PI * 2);
       ctx.fill();
     }
 
+    const levelW = levelWidthRef.current;
+    const maxCol = Math.ceil(levelW / TILE) + 1;
     const startCol = Math.max(0, Math.floor(camX / TILE));
-    const endCol = Math.min(COLS, Math.ceil((camX + w) / TILE) + 1);
+    const endCol = Math.min(maxCol, Math.ceil((camX + w) / TILE) + 1);
 
     for (let c = startCol; c <= endCol; c++) {
       const gx = c * TILE - camX;
@@ -237,20 +243,20 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       ctx.fillStyle = isEven ? GROUND_DARK : GROUND_LIGHT;
       ctx.fillRect(gx, groundY, TILE, TILE);
 
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.strokeStyle = "rgba(255,105,180,0.06)";
       ctx.lineWidth = 0.5;
       ctx.strokeRect(gx, groundY, TILE, TILE);
     }
 
     ctx.fillStyle = GROUND_TOP_LINE;
     ctx.fillRect(0, groundY, w, 2);
-    ctx.fillStyle = "rgba(37,99,235,0.3)";
+    ctx.fillStyle = "rgba(232,67,147,0.3)";
     ctx.fillRect(0, groundY + 2, w, 1);
 
     ctx.fillStyle = GROUND_DARK;
     ctx.fillRect(0, groundY + TILE, w, h - groundY - TILE);
 
-    ctx.strokeStyle = "rgba(255,255,255,0.03)";
+    ctx.strokeStyle = "rgba(255,105,180,0.03)";
     ctx.lineWidth = 0.5;
     for (let c = startCol; c <= endCol; c++) {
       const sx = c * TILE - camX;
@@ -340,7 +346,8 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         drawLevel(ctx, camX, time);
         drawPlayer(ctx, p, camX);
 
-        const progress = Math.min(100, (camX / Math.max(1, COLS * TILE - VIEWPORT_W)) * 100);
+        const lw = levelWidthRef.current;
+        const progress = Math.min(100, (camX / Math.max(1, lw - VIEWPORT_W)) * 100);
 
         const barW = 240;
         const barH = 6;
@@ -351,7 +358,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         roundRect(ctx, barX, barY, barW, barH, 3);
         ctx.fill();
 
-        ctx.fillStyle = "#4ade80";
+        ctx.fillStyle = "#f472b6";
         if (progress > 0) {
           roundRect(ctx, barX, barY, barW * (progress / 100), barH, 3);
           ctx.fill();
@@ -385,7 +392,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
           }
 
           const flashAlpha = Math.min(0.6, deathElapsed * 2);
-          ctx.fillStyle = `rgba(180,30,30,${flashAlpha})`;
+          ctx.fillStyle = `rgba(180,30,80,${flashAlpha})`;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           if (deathElapsed > 0.6) {
@@ -404,7 +411,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
           ctx.fillText("Level Complete!", canvas.width / 2, canvas.height / 2 - 30);
 
           ctx.font = "16px sans-serif";
-          ctx.fillStyle = "#bbf7d0";
+          ctx.fillStyle = "#f9a8d4";
           ctx.fillText(`${stateRef.current.elapsed.toFixed(2)}s  |  ${attemptsRef.current} attempt${attemptsRef.current > 1 ? "s" : ""}`, canvas.width / 2, canvas.height / 2 + 10);
 
           ctx.font = "12px sans-serif";
@@ -430,7 +437,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   }, [objects, onStop, drawLevel, drawPlayer, startMode, restart]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center", background: "#000" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", alignItems: "center", justifyContent: "center", background: "#1a0612" }}>
       <canvas
         ref={canvasRef}
         width={VIEWPORT_W}
@@ -443,7 +450,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
           aspectRatio: `${VIEWPORT_W} / ${VIEWPORT_H}`,
           cursor: "pointer",
           outline: "none",
-          background: "#000428",
+          background: "#2d0a1e",
         }}
       />
     </div>

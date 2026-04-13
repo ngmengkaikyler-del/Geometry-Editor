@@ -1,6 +1,7 @@
 export type BuiltinObjectType =
   | "block"
   | "spike"
+  | "spike_down"
   | "platform"
   | "portal"
   | "coin"

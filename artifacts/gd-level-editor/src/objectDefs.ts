@@ -1,18 +1,18 @@
 import type { ObjectDef, BuiltinObjectType, ToolType } from "./types";
 
 function drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  ctx.fillStyle = "#4a90d9";
+  ctx.fillStyle = "#1a0a1e";
   ctx.fillRect(x + 1, y + 1, size - 2, size - 2);
-  ctx.strokeStyle = "#2b6cb0";
+  ctx.strokeStyle = "#d63384";
   ctx.lineWidth = 1.5;
   ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
-  ctx.fillStyle = "rgba(255,255,255,0.15)";
+  ctx.fillStyle = "rgba(214,51,132,0.12)";
   ctx.fillRect(x + 3, y + 3, size - 6, 4);
 }
 
 function drawSpike(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  ctx.fillStyle = "#e74c3c";
-  ctx.strokeStyle = "#c0392b";
+  ctx.fillStyle = "#2d0a1e";
+  ctx.strokeStyle = "#e84393";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(x + size / 2, y + 2);

@@ -171,6 +171,14 @@ function checkPortals(grid: CollisionGrid, player: PlayerState) {
   }
 }
 
+export function computeLevelWidth(objects: LevelObject[]): number {
+  let maxCol = COLS;
+  for (const obj of objects) {
+    if (obj.x + 1 > maxCol) maxCol = obj.x + 1;
+  }
+  return (maxCol + 2) * TILE;
+}
+
 export function stepGame(state: GameState, dt: number, objects: LevelObject[]): GameState {
   const p = { ...state.player };
   let camX = state.cameraX;
@@ -184,7 +192,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   const holding = state.holding;
   const realDt = Math.min(dt, 0.033);
   const worldH = ROWS * TILE;
-  const worldW = COLS * TILE;
+  const worldW = computeLevelWidth(objects);
 
   const scrollSpeed = BASE_SCROLL_SPEED * p.speedMultiplier;
 
@@ -231,6 +239,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
         if (targetRow >= 0) {
           p.y = (targetRow + 1) * TILE;
           p.vy = 0;
+          p.grounded = false;
         }
       }
       break;
