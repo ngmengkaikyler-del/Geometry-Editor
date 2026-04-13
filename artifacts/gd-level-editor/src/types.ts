@@ -9,7 +9,12 @@ export type BuiltinObjectType =
   | "ring"
   | "orb"
   | "gm_wave"
-  | "gm_wave_mini";
+  | "gm_wave_mini"
+  | "speed_slow"
+  | "speed_normal"
+  | "speed_fast"
+  | "speed_vfast"
+  | "speed_sfast";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 

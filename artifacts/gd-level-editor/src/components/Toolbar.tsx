@@ -31,6 +31,11 @@ const TOOL_ICONS: Record<string, string> = {
   orb: "\u25C8",
   gm_wave: "\u2215",
   gm_wave_mini: "\u2215",
+  speed_slow: "\u25C0",
+  speed_normal: "\u25B6",
+  speed_fast: "\u25B6\u25B6",
+  speed_vfast: "\u25B6\u25B6",
+  speed_sfast: "\u25B6\u25B6",
   eraser: "\u2715",
 };
 
@@ -46,6 +51,11 @@ const TOOL_COLORS: Record<string, string> = {
   orb: "#ffd700",
   gm_wave: "#facc15",
   gm_wave_mini: "#facc15",
+  speed_slow: "#ff8c00",
+  speed_normal: "#00d4ff",
+  speed_fast: "#00ff40",
+  speed_vfast: "#e040ff",
+  speed_sfast: "#ff2020",
   eraser: "#6b7280",
 };
 

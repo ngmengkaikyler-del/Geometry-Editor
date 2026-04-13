@@ -144,6 +144,11 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   orb:               { label: "Orb",           color: "#ffd700", render: drawOrb },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
   gm_wave_mini:      { label: "Wave M",        color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", true) },
+  speed_slow:        { label: "Slow",          color: "#ff8c00", render: makeSpriteRenderer(spritePath("portal_slow.png")) },
+  speed_normal:      { label: "Normal",        color: "#00d4ff", render: makeSpriteRenderer(spritePath("portal_normal.png")) },
+  speed_fast:        { label: "Fast",          color: "#00ff40", render: makeSpriteRenderer(spritePath("portal_fast.png")) },
+  speed_vfast:       { label: "V.Fast",        color: "#e040ff", render: makeSpriteRenderer(spritePath("portal_vfast.png")) },
+  speed_sfast:       { label: "S.Fast",        color: "#ff2020", render: makeSpriteRenderer(spritePath("portal_sfast.png")) },
 };
 
 export const BUILTIN_TYPES: BuiltinObjectType[] = Object.keys(OBJECT_DEFS) as BuiltinObjectType[];
@@ -155,6 +160,7 @@ export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },
   { label: "Triggers", items: ["ring", "orb"] },
   { label: "Mode", items: ["gm_wave", "gm_wave_mini"] },
+  { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
   { label: "", items: ["eraser"] },
 ];
 
