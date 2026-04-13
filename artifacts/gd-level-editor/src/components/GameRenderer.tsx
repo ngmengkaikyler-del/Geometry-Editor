@@ -63,7 +63,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
   const deathTimeRef = useRef<number>(0);
   const attemptsRef = useRef(1);
   const starsRef = useRef<Star[]>(generateStars(80));
-  const trailRef = useRef<{x: number; y: number; alpha: number}[]>([]);
+  const trailRef = useRef<{x: number; y: number}[]>([]);
   const attemptFlashRef = useRef<number>(0);
   const levelWidthRef = useRef<number>(computeLevelWidth(objects));
 
@@ -106,14 +106,48 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
     const cy = py + PLAYER_H / 2;
 
     const trail = trailRef.current;
-    trail.push({ x: cx, y: cy, alpha: 0.6 });
-    if (trail.length > 12) trail.shift();
-    for (let i = 0; i < trail.length - 1; i++) {
-      const t = trail[i];
-      ctx.fillStyle = `${color}${Math.floor(t.alpha * 40).toString(16).padStart(2, "0")}`;
-      const sz = PLAYER_W * 0.5 * (i / trail.length);
-      ctx.fillRect(t.x - sz / 2, t.y - sz / 2, sz, sz);
-      t.alpha *= 0.85;
+    const worldCx = p.worldX + PLAYER_OFFSET + PLAYER_W / 2;
+    trail.push({ x: worldCx, y: cy });
+    const maxTrailLen = p.mode === "wave" ? 120 : 12;
+    while (trail.length > maxTrailLen) trail.shift();
+
+    if (p.mode === "wave" && trail.length >= 2) {
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.beginPath();
+        const t0 = trail[0];
+        ctx.moveTo(t0.x - camX, t0.y);
+        for (let i = 1; i < trail.length; i++) {
+          const t = trail[i];
+          ctx.lineTo(t.x - camX, t.y);
+        }
+
+        if (pass === 0) {
+          ctx.strokeStyle = color + "30";
+          ctx.lineWidth = 8;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 12;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        } else {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    } else if (trail.length >= 2) {
+      for (let i = 0; i < trail.length - 1; i++) {
+        const t = trail[i];
+        const alpha = (i / trail.length) * 0.3;
+        ctx.fillStyle = `${color}${Math.floor(alpha * 255).toString(16).padStart(2, "0")}`;
+        const sz = PLAYER_W * 0.4 * (i / trail.length);
+        const sx = t.x - camX;
+        ctx.fillRect(sx - sz / 2, t.y - sz / 2, sz, sz);
+      }
     }
 
     ctx.save();
