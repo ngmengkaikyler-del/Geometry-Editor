@@ -3,7 +3,7 @@ import type { LevelObject } from "../types";
 export type PlayableMode = "cube" | "ship" | "spider" | "wave";
 
 const TILE = 40;
-const COLS = 200;
+const COLS = 500;
 const ROWS = 10;
 
 const VIEWPORT_W = 960;
@@ -29,13 +29,6 @@ const SPEED_MULTIPLIERS: Record<string, number> = {
 
 const GAMEMODE_MAP: Record<string, PlayableMode> = {
   gm_cube: "cube",
-  gm_cube_mini: "cube",
-  gm_ball: "cube",
-  gm_ball_mini: "cube",
-  gm_ufo: "ship",
-  gm_ufo_mini: "ship",
-  gm_robot: "cube",
-  gm_robot_mini: "cube",
   gm_wave: "wave",
   gm_wave_mini: "wave",
 };
@@ -62,8 +55,8 @@ export interface GameState {
   elapsed: number;
 }
 
-const SOLID_TYPES = new Set(["block", "platform"]);
-const HAZARD_TYPES = new Set(["spike"]);
+const SOLID_TYPES = new Set(["block"]);
+const HAZARD_TYPES = new Set(["spike", "spike_down", "sawblade"]);
 const SPEED_TYPES = new Set(Object.keys(SPEED_MULTIPLIERS));
 const GAMEMODE_TYPES = new Set(Object.keys(GAMEMODE_MAP));
 
@@ -191,7 +184,6 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   const grid = buildCollisionGrid(objects);
   const holding = state.holding;
   const realDt = Math.min(dt, 0.033);
-  const worldH = ROWS * TILE;
   const worldW = computeLevelWidth(objects);
 
   const scrollSpeed = BASE_SCROLL_SPEED * p.speedMultiplier;
