@@ -73,13 +73,13 @@ function key(col: number, row: number) {
 
 interface CollisionGrid {
   solids: Set<string>;
-  hazards: Set<string>;
+  hazardObjects: LevelObject[];
   portals: Map<string, LevelObject>;
 }
 
 function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
   const solids = new Set<string>();
-  const hazards = new Set<string>();
+  const hazardObjects: LevelObject[] = [];
   const portals = new Map<string, LevelObject>();
 
   for (const obj of objects) {
@@ -87,13 +87,13 @@ function buildCollisionGrid(objects: LevelObject[]): CollisionGrid {
     if (SOLID_TYPES.has(obj.type)) {
       solids.add(k);
     } else if (HAZARD_TYPES.has(obj.type)) {
-      hazards.add(k);
+      hazardObjects.push(obj);
     } else if (SPEED_TYPES.has(obj.type) || GAMEMODE_TYPES.has(obj.type) || DASH_ORB_TYPES.has(obj.type)) {
       portals.set(k, obj);
     }
   }
 
-  return { solids, hazards, portals };
+  return { solids, hazardObjects, portals };
 }
 
 const PLAYER_SCREEN_X = 160;
@@ -138,15 +138,63 @@ function isSolid(grid: CollisionGrid, px: number, py: number, w: number, h: numb
   return false;
 }
 
-function isHazard(grid: CollisionGrid, px: number, py: number, w: number, h: number): boolean {
-  const left = Math.floor(px / TILE);
-  const right = Math.floor((px + w - 0.01) / TILE);
-  const top = Math.floor(py / TILE);
-  const bottom = Math.floor((py + h - 0.01) / TILE);
+const SPIKE_UP_TYPES = new Set(["spike", "spike_purple", "spike_green", "spike_blue"]);
+const SPIKE_DOWN_TYPES = new Set(["spike_down", "spike_purple_down", "spike_green_down", "spike_blue_down"]);
+const SAWBLADE_TYPES = new Set(["sawblade"]);
 
-  for (let c = left; c <= right; c++) {
-    for (let r = top; r <= bottom; r++) {
-      if (grid.hazards.has(key(c, r))) return true;
+function rectsOverlap(
+  ax: number, ay: number, aw: number, ah: number,
+  bx: number, by: number, bw: number, bh: number
+): boolean {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function circleRectOverlap(
+  cx: number, cy: number, cr: number,
+  rx: number, ry: number, rw: number, rh: number
+): boolean {
+  const closestX = Math.max(rx, Math.min(cx, rx + rw));
+  const closestY = Math.max(ry, Math.min(cy, ry + rh));
+  const dx = cx - closestX;
+  const dy = cy - closestY;
+  return dx * dx + dy * dy <= cr * cr;
+}
+
+function checkHazards(grid: CollisionGrid, px: number, py: number, pw: number, ph: number): boolean {
+  for (const obj of grid.hazardObjects) {
+    const ox = obj.x * TILE;
+    const oy = obj.y * TILE;
+
+    if (Math.abs(ox - px) > TILE * 2 || Math.abs(oy - py) > TILE * 2) continue;
+
+    if (SPIKE_UP_TYPES.has(obj.type)) {
+      const inset = TILE * 0.25;
+      const tipH = TILE * 0.45;
+      const hx = ox + inset;
+      const hw = TILE - inset * 2;
+      const hy = oy;
+      const hh = tipH;
+      if (rectsOverlap(px, py, pw, ph, hx, hy, hw, hh)) return true;
+    } else if (SPIKE_DOWN_TYPES.has(obj.type)) {
+      const inset = TILE * 0.25;
+      const tipH = TILE * 0.45;
+      const hx = ox + inset;
+      const hw = TILE - inset * 2;
+      const hy = oy + TILE - tipH;
+      const hh = tipH;
+      if (rectsOverlap(px, py, pw, ph, hx, hy, hw, hh)) return true;
+    } else if (SAWBLADE_TYPES.has(obj.type)) {
+      const cr = TILE * 0.38;
+      const ccx = ox + TILE / 2;
+      const ccy = oy + TILE / 2;
+      if (circleRectOverlap(ccx, ccy, cr, px, py, pw, ph)) return true;
+    } else {
+      const inset = TILE * 0.1;
+      const hx = ox + inset;
+      const hy = oy + inset;
+      const hw = TILE - inset * 2;
+      const hh = TILE - inset * 2;
+      if (rectsOverlap(px, py, pw, ph, hx, hy, hw, hh)) return true;
     }
   }
   return false;
@@ -317,7 +365,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
     }
   }
 
-  if (isHazard(grid, bx, p.y + PLAYER_OFFSET, PLAYER_W, PLAYER_H)) {
+  if (checkHazards(grid, bx, p.y + PLAYER_OFFSET, PLAYER_W, PLAYER_H)) {
     p.dead = true;
   }
 
