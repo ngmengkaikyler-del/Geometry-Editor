@@ -129,6 +129,13 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
+      const isMini = p.mode === "mini_wave";
+      const glowW = isMini ? 10 : 18;
+      const coreW = isMini ? 3 : 5;
+      const centerW = isMini ? 1 : 1.5;
+      const glowBlur = isMini ? 16 : 25;
+      const coreBlur = isMini ? 6 : 10;
+
       ctx.beginPath();
       const t0 = trail[0];
       ctx.moveTo(t0.x - camX, t0.y);
@@ -136,9 +143,9 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.lineTo(trail[i].x - camX, trail[i].y);
       }
       ctx.strokeStyle = color + "18";
-      ctx.lineWidth = 18;
+      ctx.lineWidth = glowW;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 25;
+      ctx.shadowBlur = glowBlur;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
@@ -148,9 +155,9 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.lineTo(trail[i].x - camX, trail[i].y);
       }
       ctx.strokeStyle = color;
-      ctx.lineWidth = 5;
+      ctx.lineWidth = coreW;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = coreBlur;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
@@ -160,7 +167,7 @@ export function GameRenderer({ objects, customImages, startMode, onStop }: GameR
         ctx.lineTo(trail[i].x - camX, trail[i].y);
       }
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = centerW;
       ctx.stroke();
 
       ctx.restore();
