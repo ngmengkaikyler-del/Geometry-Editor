@@ -396,7 +396,15 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
 
   if (isSolid(grid, bx, by, PLAYER_W, PLAYER_H)) {
     if (p.mode === "wave") {
-      p.dead = true;
+      if (p.vy > 0) {
+        const bottomRow = Math.floor((by + PLAYER_H - 0.01) / TILE);
+        p.y = bottomRow * TILE - PLAYER_H - PLAYER_OFFSET;
+        p.vy = 0;
+      } else if (p.vy < 0) {
+        const topRow = Math.floor(by / TILE);
+        p.y = (topRow + 1) * TILE - PLAYER_OFFSET;
+        p.vy = 0;
+      }
     } else if (p.vy > 0) {
       const bottomRow = Math.floor((by + PLAYER_H - 0.01) / TILE);
       p.y = bottomRow * TILE - PLAYER_H - PLAYER_OFFSET;
@@ -413,10 +421,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   by = p.y + PLAYER_OFFSET;
 
   if (p.mode === "wave") {
-    const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
-    if (rampHit) {
-      p.dead = true;
-    }
+    // wave passes over ramps
   } else {
     const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
     if (rampHit && p.vy >= 0) {
@@ -447,23 +452,15 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   }
 
   if (by < 0) {
-    if (p.mode === "wave") {
-      p.dead = true;
-    } else {
-      p.y = -PLAYER_OFFSET;
-      if (p.vy < 0) p.vy = 0;
-    }
+    p.y = -PLAYER_OFFSET;
+    if (p.vy < 0) p.vy = 0;
   }
 
   if (by + PLAYER_H > GROUND_Y) {
-    if (p.mode === "wave") {
-      p.dead = true;
-    } else {
-      p.y = GROUND_Y - PLAYER_H - PLAYER_OFFSET;
-      if (p.vy > 0) p.vy = 0;
-      if (p.mode === "cube" || p.mode === "spider") {
-        p.grounded = true;
-      }
+    p.y = GROUND_Y - PLAYER_H - PLAYER_OFFSET;
+    if (p.vy > 0) p.vy = 0;
+    if (p.mode === "cube" || p.mode === "spider") {
+      p.grounded = true;
     }
   }
 
