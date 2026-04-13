@@ -97,6 +97,51 @@ function drawModePortal(
   }
 }
 
+function drawCog(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
+  const cx = x + s / 2;
+  const cy = y + s / 2;
+  const outerR = s * 0.44;
+  const innerR = s * 0.30;
+  const teethCount = 8;
+  const toothWidth = Math.PI / teethCount * 0.6;
+
+  ctx.beginPath();
+  for (let i = 0; i < teethCount; i++) {
+    const angle = (i / teethCount) * Math.PI * 2;
+    const a1 = angle - toothWidth;
+    const a2 = angle + toothWidth;
+    ctx.lineTo(cx + Math.cos(a1) * outerR, cy + Math.sin(a1) * outerR);
+    ctx.lineTo(cx + Math.cos(a2) * outerR, cy + Math.sin(a2) * outerR);
+    const midAngle = angle + Math.PI / teethCount;
+    const b1 = midAngle - toothWidth * 0.7;
+    const b2 = midAngle + toothWidth * 0.7;
+    ctx.lineTo(cx + Math.cos(b1) * innerR, cy + Math.sin(b1) * innerR);
+    ctx.lineTo(cx + Math.cos(b2) * innerR, cy + Math.sin(b2) * innerR);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "#555555";
+  ctx.fill();
+  ctx.strokeStyle = "#888888";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR * 0.65, 0, Math.PI * 2);
+  ctx.fillStyle = "#444444";
+  ctx.fill();
+  ctx.strokeStyle = "#777777";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR * 0.25, 0, Math.PI * 2);
+  ctx.fillStyle = "#333333";
+  ctx.fill();
+  ctx.strokeStyle = "#666666";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+}
+
 function drawRamp(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
   const m = 1;
   ctx.fillStyle = "#2a0a20";
@@ -142,7 +187,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   spike_blue_down:   { label: "Spike \u25BC",  color: "#44b0e0", render: makeSpriteRenderer(spritePath("spike_blue_down.png")) },
   block:             { label: "Block",         color: "#d63384", render: drawBlock },
   ramp:              { label: "Ramp",          color: "#d63384", render: drawRamp },
-  sawblade:          { label: "Cog",           color: "#ff2020", render: makeSpriteRenderer(spritePath("sawblade.png")) },
+  sawblade:          { label: "Cog",           color: "#ff2020", render: drawCog },
   dash_green:        { label: "Dash G",        color: "#00ff40", render: makeSpriteRenderer(spritePath("dash_green.png")) },
   dash_pink:         { label: "Dash P",        color: "#ff40a0", render: makeSpriteRenderer(spritePath("dash_pink.png")) },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
