@@ -556,16 +556,6 @@ export function generateWaveTrialsLevel(): { objects: LevelObject[]; name: strin
   ];
   objs.push(...spikedCorridor(565, finale, 2));
 
-  // ===== Coins scattered throughout =====
-  objs.push({ x: 44, y: 1, type: "coin" });
-  objs.push({ x: 110, y: 1, type: "coin" });
-  objs.push({ x: 175, y: 1, type: "coin" });
-  objs.push({ x: 270, y: 1, type: "coin" });
-  objs.push({ x: 355, y: 1, type: "coin" });
-  objs.push({ x: 440, y: 1, type: "coin" });
-  objs.push({ x: 510, y: 1, type: "coin" });
-  objs.push({ x: 570, y: 1, type: "coin" });
-
   return {
     objects: objs,
     name: "Ashley Wave Trials E",

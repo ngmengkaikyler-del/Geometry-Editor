@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { LevelObject, ToolType, CustomImage, MusicTrack } from "../types";
-import { isBuiltinType, SPEED_DATA, GAMEMODE_DATA } from "../objectDefs";
+import { isBuiltinType } from "../objectDefs";
 import { LevelEditor } from "../components/LevelEditor";
 import { Toolbar } from "../components/Toolbar";
 import { StatusBar } from "../components/StatusBar";
@@ -16,30 +16,19 @@ import { generateWaveTrialsLevel } from "../lib/demoLevels";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Left-click to place blocks | Right-click to delete",
-  spike: "Left-click to place spikes | Right-click to delete",
-  platform: "Left-click to place platforms | Right-click to delete",
-  portal: "Left-click to place portals | Right-click to delete",
-  coin: "Left-click to place coins | Right-click to delete",
-  ring: "Left-click to place rings | Right-click to delete",
-  orb: "Left-click to place orbs | Right-click to delete",
-  speed_slow: `Slow (${SPEED_DATA.speed_slow.multiplier}) \u2014 ~${SPEED_DATA.speed_slow.blocksPerSec} blocks/s`,
-  speed_normal: `Normal (${SPEED_DATA.speed_normal.multiplier}) \u2014 ~${SPEED_DATA.speed_normal.blocksPerSec} blocks/s`,
-  speed_fast: `Fast (${SPEED_DATA.speed_fast.multiplier}) \u2014 ~${SPEED_DATA.speed_fast.blocksPerSec} blocks/s`,
-  speed_vfast: `V.Fast (${SPEED_DATA.speed_vfast.multiplier}) \u2014 ~${SPEED_DATA.speed_vfast.blocksPerSec} blocks/s`,
-  speed_sfast: `S.Fast (${SPEED_DATA.speed_sfast.multiplier}) \u2014 ~${SPEED_DATA.speed_sfast.blocksPerSec} blocks/s`,
-  gm_cube: `Cube (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_cube.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_cube.gravity}`,
-  gm_cube_mini: `Cube (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_cube_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_cube_mini.gravity}`,
-  gm_ball: `Ball (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_ball.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ball.gravity}`,
-  gm_ball_mini: `Ball (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_ball_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ball_mini.gravity}`,
-  gm_ufo: `UFO (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_ufo.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ufo.gravity}`,
-  gm_ufo_mini: `UFO (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_ufo_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_ufo_mini.gravity}`,
-  gm_robot: `Robot (Big) \u2014 Jump: ${GAMEMODE_DATA.gm_robot.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot.maxHold}s`,
-  gm_robot_mini: `Robot (Mini) \u2014 Jump: ${GAMEMODE_DATA.gm_robot_mini.jumpForce} | Gravity: ${GAMEMODE_DATA.gm_robot_mini.gravity} | Max hold: ${GAMEMODE_DATA.gm_robot_mini.maxHold}s`,
-  gm_wave: `Wave (Big) \u2014 45\u00B0 angle | Vy = Vx (1:1 ratio) | Hold=up, Release=down`,
-  gm_wave_mini: `Wave (Mini) \u2014 63.43\u00B0 angle | Vy = 2\u00D7Vx (2:1 ratio) | 2x sensitivity`,
-  orb_dash_green: "Dash Orb (Green) \u2014 Vy=0 while held, horizontal travel only | Gravity resumes on release",
-  orb_dash_pink: "Dash Orb (Pink) \u2014 Vy=0 while held | Flips gravity on release (g = -g)",
-  orb_spider: "Spider Orb \u2014 Raycast to nearest surface, teleport in 1 frame, flip gravity",
+  spike: "Spike (up) \u2014 triangle hazard, kills on touch",
+  spike_down: "Spike (down) \u2014 inverted triangle hazard, kills on touch",
+  sawblade: "Sawblade \u2014 circular spinning hazard, kills on touch",
+  ring: "Ring \u2014 cyan jump trigger",
+  orb: "Orb \u2014 yellow jump trigger",
+  speed_slow: "Slow (0.8x) \u2014 reduces scroll speed",
+  speed_normal: "Normal (1x) \u2014 default scroll speed",
+  speed_fast: "Fast (1.25x) \u2014 increased scroll speed",
+  speed_vfast: "V.Fast (1.6x) \u2014 very fast scroll speed",
+  speed_sfast: "S.Fast (2x) \u2014 super fast scroll speed",
+  gm_cube: "Cube mode \u2014 tap to jump, gravity pulls down",
+  gm_wave: "Wave mode \u2014 hold=up, release=down, 45\u00B0 angle",
+  gm_wave_mini: "Wave (Mini) \u2014 steeper angle, 2x sensitivity",
   eraser: "Click or drag to erase objects | Right-click also deletes",
 };
 
@@ -404,7 +393,7 @@ export default function EditorPage() {
               letterSpacing: "0.05em",
             }}
           >
-            LEVEL CANVAS - 200 x 10 tiles
+            LEVEL CANVAS - 600 x 10 tiles
           </div>
           <LevelEditor
             selectedTool={selectedTool}

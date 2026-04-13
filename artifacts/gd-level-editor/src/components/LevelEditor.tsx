@@ -3,43 +3,33 @@ import type { LevelObject, ToolType, CustomImage } from "../types";
 import { OBJECT_DEFS, isBuiltinType } from "../objectDefs";
 
 const TILE_SIZE = 40;
-const GRID_COLS = 200;
+const GRID_COLS = 600;
 const GRID_ROWS = 10;
 const HEADER_HEIGHT = 24;
 
 const GAMEMODE_TYPES = new Set<string>([
-  "gm_cube", "gm_cube_mini", "gm_ball", "gm_ball_mini",
-  "gm_ufo", "gm_ufo_mini", "gm_robot", "gm_robot_mini",
-  "gm_wave", "gm_wave_mini",
+  "gm_cube", "gm_wave", "gm_wave_mini",
 ]);
 
 const SPEED_TYPES = new Set<string>([
   "speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast",
 ]);
 
-type GamemodeKind = "cube" | "ball" | "ufo" | "robot" | "wave";
+type GamemodeKind = "cube" | "wave";
 
 const GAMEMODE_KIND_MAP: Record<string, GamemodeKind> = {
-  gm_cube: "cube", gm_cube_mini: "cube",
-  gm_ball: "ball", gm_ball_mini: "ball",
-  gm_ufo: "ufo", gm_ufo_mini: "ufo",
-  gm_robot: "robot", gm_robot_mini: "robot",
-  gm_wave: "wave", gm_wave_mini: "wave",
+  gm_cube: "cube",
+  gm_wave: "wave",
+  gm_wave_mini: "wave",
 };
 
 const GAMEMODE_COLORS: Record<GamemodeKind, string> = {
   cube: "#22d3ee",
-  ball: "#f97316",
-  ufo: "#a78bfa",
-  robot: "#6ee7b7",
   wave: "#facc15",
 };
 
 const GAMEMODE_ICONS: Record<GamemodeKind, string> = {
   cube: "\u25A0",
-  ball: "\u25CF",
-  ufo: "\u2666",
-  robot: "\u2699",
   wave: "\u2215",
 };
 
