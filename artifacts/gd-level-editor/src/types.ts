@@ -2,9 +2,7 @@ export type BuiltinObjectType =
   | "block"
   | "spike"
   | "spike_down"
-  | "platform"
-  | "portal"
-  | "coin"
+  | "sawblade"
   | "ring"
   | "orb"
   | "speed_slow"
@@ -13,18 +11,8 @@ export type BuiltinObjectType =
   | "speed_vfast"
   | "speed_sfast"
   | "gm_cube"
-  | "gm_cube_mini"
-  | "gm_ball"
-  | "gm_ball_mini"
-  | "gm_ufo"
-  | "gm_ufo_mini"
-  | "gm_robot"
-  | "gm_robot_mini"
   | "gm_wave"
-  | "gm_wave_mini"
-  | "orb_dash_green"
-  | "orb_dash_pink"
-  | "orb_spider";
+  | "gm_wave_mini";
 
 export type ToolType = BuiltinObjectType | "eraser" | string;
 
