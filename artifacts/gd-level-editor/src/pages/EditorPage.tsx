@@ -12,6 +12,7 @@ import { saveMusicTrack, deleteMusicTrack, loadMusicTrack } from "../lib/musicSt
 import { exportLevelZip, exportLevelJsonOnly } from "../lib/exportLevel";
 import { processImageFile } from "../lib/processImageFile";
 import type { PlayableMode } from "../lib/gameEngine";
+import { generateWaveTrialsLevel } from "../lib/demoLevels";
 
 const BUILTIN_HINTS: Record<string, string> = {
   block: "Left-click to place blocks | Right-click to delete",
@@ -161,6 +162,14 @@ export default function EditorPage() {
   const handleExportZip = useCallback(() => {
     exportLevelZip(levelName, objects, customImages, musicTrack);
   }, [levelName, objects, customImages, musicTrack]);
+
+  const handleLoadDemo = useCallback(() => {
+    if (objects.length > 0 && !window.confirm("This will replace the current level. Continue?")) return;
+    const demo = generateWaveTrialsLevel();
+    setObjects(demo.objects);
+    setLevelName(demo.name);
+    setStartMode(demo.startMode);
+  }, [objects.length]);
 
   const handleClear = useCallback(() => {
     if (objects.length === 0) return;
@@ -366,6 +375,7 @@ export default function EditorPage() {
         startMode={startMode}
         onStartModeChange={setStartMode}
         onPlay={() => setIsPlaying(true)}
+        onLoadDemo={handleLoadDemo}
       />
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <CustomImageSidebar

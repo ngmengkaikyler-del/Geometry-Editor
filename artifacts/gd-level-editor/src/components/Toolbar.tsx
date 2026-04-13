@@ -16,6 +16,7 @@ interface ToolbarProps {
   startMode: PlayableMode;
   onStartModeChange: (mode: PlayableMode) => void;
   onPlay: () => void;
+  onLoadDemo: () => void;
 }
 
 const TOOL_ICONS: Record<string, string> = {
@@ -88,6 +89,7 @@ export function Toolbar({
   startMode,
   onStartModeChange,
   onPlay,
+  onLoadDemo,
 }: ToolbarProps) {
   return (
     <div
@@ -285,6 +287,29 @@ export function Toolbar({
         <span style={{ color: "#6b7280", fontSize: "11px", fontFamily: "monospace" }}>
           {objectCount} obj
         </span>
+        <button
+          onClick={onLoadDemo}
+          title="Load Wave Trials demo level"
+          style={{
+            padding: "5px 10px",
+            background: "rgba(250,204,21,0.1)",
+            border: "1px solid rgba(250,204,21,0.3)",
+            borderRadius: "5px",
+            color: "#facc15",
+            cursor: "pointer",
+            fontSize: "10px",
+            fontFamily: "monospace",
+            fontWeight: 600,
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(250,204,21,0.2)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(250,204,21,0.1)";
+          }}
+        >
+          Demo
+        </button>
         <button
           onClick={onClear}
           title="Clear all objects"
