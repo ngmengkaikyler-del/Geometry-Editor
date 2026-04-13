@@ -169,8 +169,8 @@ function checkRampCollision(
 
 const PLAYER_SCREEN_X = 160;
 
-const PLAYER_W = TILE * 0.85;
-const PLAYER_H = TILE * 0.85;
+const PLAYER_W = TILE * 0.833;
+const PLAYER_H = TILE * 0.833;
 const PLAYER_OFFSET = (TILE - PLAYER_W) / 2;
 
 export function createInitialState(startMode: PlayableMode): GameState {
@@ -242,41 +242,45 @@ function checkHazards(grid: CollisionGrid, px: number, py: number, pw: number, p
 
     if (SPIKE_UP_TYPES.has(obj.type)) {
       const rot = obj.rotation ?? 0;
-      const insetX = TILE * 0.28;
-      const tipH = TILE * 0.4;
+      const spikeW = TILE * 0.25;
+      const spikeH = TILE * 0.33;
+      const cx = ox + TILE / 2;
+      const cy = oy + TILE / 2;
       if (rot === 0) {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy, spikeW, spikeH)) return true;
       } else if (rot === 90) {
-        if (rectsOverlap(px, py, pw, ph, ox + TILE - tipH, oy + insetX, tipH, TILE - insetX * 2)) return true;
+        if (rectsOverlap(px, py, pw, ph, ox + TILE - spikeH, cy - spikeW / 2, spikeH, spikeW)) return true;
       } else if (rot === 180) {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy + TILE - tipH, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy + TILE - spikeH, spikeW, spikeH)) return true;
       } else if (rot === 270) {
-        if (rectsOverlap(px, py, pw, ph, ox, oy + insetX, tipH, TILE - insetX * 2)) return true;
+        if (rectsOverlap(px, py, pw, ph, ox, cy - spikeW / 2, spikeH, spikeW)) return true;
       } else {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy, spikeW, spikeH)) return true;
       }
     } else if (SPIKE_DOWN_TYPES.has(obj.type)) {
       const rot = obj.rotation ?? 0;
-      const insetX = TILE * 0.28;
-      const tipH = TILE * 0.4;
+      const spikeW = TILE * 0.25;
+      const spikeH = TILE * 0.33;
+      const cx = ox + TILE / 2;
+      const cy = oy + TILE / 2;
       if (rot === 0) {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy + TILE - tipH, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy + TILE - spikeH, spikeW, spikeH)) return true;
       } else if (rot === 90) {
-        if (rectsOverlap(px, py, pw, ph, ox, oy + insetX, tipH, TILE - insetX * 2)) return true;
+        if (rectsOverlap(px, py, pw, ph, ox, cy - spikeW / 2, spikeH, spikeW)) return true;
       } else if (rot === 180) {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy, spikeW, spikeH)) return true;
       } else if (rot === 270) {
-        if (rectsOverlap(px, py, pw, ph, ox + TILE - tipH, oy + insetX, tipH, TILE - insetX * 2)) return true;
+        if (rectsOverlap(px, py, pw, ph, ox + TILE - spikeH, cy - spikeW / 2, spikeH, spikeW)) return true;
       } else {
-        if (rectsOverlap(px, py, pw, ph, ox + insetX, oy + TILE - tipH, TILE - insetX * 2, tipH)) return true;
+        if (rectsOverlap(px, py, pw, ph, cx - spikeW / 2, oy + TILE - spikeH, spikeW, spikeH)) return true;
       }
     } else if (SAWBLADE_TYPES.has(obj.type)) {
-      const cr = TILE * 0.36;
+      const cr = TILE * 0.47;
       const ccx = ox + TILE / 2;
       const ccy = oy + TILE / 2;
       if (circleRectOverlap(ccx, ccy, cr, px, py, pw, ph)) return true;
     } else {
-      const inset = TILE * 0.12;
+      const inset = TILE * 0.08;
       const hx = ox + inset;
       const hy = oy + inset;
       const hw = TILE - inset * 2;
