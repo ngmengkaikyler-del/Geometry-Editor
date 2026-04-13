@@ -46,6 +46,8 @@ export interface PlayerState {
   speedMultiplier: number;
   rotation: number;
   targetRotation: number;
+  dashTimer: number;
+  dashDirection: number;
 }
 
 export interface GameState {
@@ -178,6 +180,8 @@ export function createInitialState(startMode: PlayableMode): GameState {
       speedMultiplier: 1,
       rotation: 0,
       targetRotation: 0,
+      dashTimer: 0,
+      dashDirection: 0,
     },
     cameraX: 0,
     targetCameraX: 0,
@@ -282,11 +286,13 @@ function checkPortals(grid: CollisionGrid, player: PlayerState) {
   }
   if (DASH_ORB_TYPES.has(portal.type)) {
     if (portal.type === "dash_green") {
+      player.dashTimer = 0.6;
+      player.dashDirection = 0;
       player.vy = 0;
-      player.speedMultiplier = Math.max(player.speedMultiplier, 1.8);
     } else if (portal.type === "dash_pink") {
-      player.vy = -400;
-      player.speedMultiplier = Math.max(player.speedMultiplier, 1.5);
+      player.dashTimer = 0.5;
+      player.dashDirection = -280;
+      player.vy = -280;
     }
   }
 }
@@ -364,11 +370,19 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
       break;
     }
     case "wave": {
-      const waveVy = scrollSpeed * WAVE_VY_RATIO;
-      if (holding) {
-        p.vy = -waveVy;
+      if (p.dashTimer > 0) {
+        p.dashTimer -= realDt;
+        p.vy = p.dashDirection;
+        if (p.dashTimer <= 0) {
+          p.dashTimer = 0;
+        }
       } else {
-        p.vy = waveVy;
+        const waveVy = scrollSpeed * WAVE_VY_RATIO;
+        if (holding) {
+          p.vy = -waveVy;
+        } else {
+          p.vy = waveVy;
+        }
       }
       p.grounded = false;
       break;
@@ -385,7 +399,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
       const bottomRow = Math.floor((by + PLAYER_H - 0.01) / TILE);
       p.y = bottomRow * TILE - PLAYER_H - PLAYER_OFFSET;
       p.vy = 0;
-      p.grounded = true;
+      if (p.mode !== "wave") p.grounded = true;
     } else if (p.vy < 0) {
       const topRow = Math.floor(by / TILE);
       p.y = (topRow + 1) * TILE - PLAYER_OFFSET;
@@ -396,13 +410,15 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   bx = p.worldX + PLAYER_OFFSET;
   by = p.y + PLAYER_OFFSET;
 
-  const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
-  if (rampHit && p.vy >= 0) {
-    const newY = rampHit.surfaceY - PLAYER_H - PLAYER_OFFSET;
-    if (newY < p.y || (p.y - newY < TILE * 0.5)) {
-      p.y = newY;
-      p.vy = 0;
-      p.grounded = true;
+  if (p.mode !== "wave") {
+    const rampHit = checkRampCollision(grid, bx, by, PLAYER_W, PLAYER_H);
+    if (rampHit && p.vy >= 0) {
+      const newY = rampHit.surfaceY - PLAYER_H - PLAYER_OFFSET;
+      if (newY < p.y || (p.y - newY < TILE * 0.5)) {
+        p.y = newY;
+        p.vy = 0;
+        p.grounded = true;
+      }
     }
   }
 
@@ -410,7 +426,7 @@ export function stepGame(state: GameState, dt: number, objects: LevelObject[]): 
   by = p.y + PLAYER_OFFSET;
 
   let groundBelow = isSolid(grid, bx, by + PLAYER_H, PLAYER_W, 2);
-  if (!groundBelow) {
+  if (!groundBelow && p.mode !== "wave") {
     const rampBelow = checkRampCollision(grid, bx, by + 2, PLAYER_W, PLAYER_H + 2);
     if (rampBelow) groundBelow = true;
   }
