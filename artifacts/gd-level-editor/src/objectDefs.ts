@@ -190,6 +190,7 @@ export const OBJECT_DEFS: Record<BuiltinObjectType, Omit<ObjectDef, "type">> = {
   sawblade:          { label: "Cog",           color: "#ff2020", render: drawCog },
   dash_green:        { label: "Dash G",        color: "#00ff40", render: makeSpriteRenderer(spritePath("dash_green.png")) },
   dash_pink:         { label: "Dash P",        color: "#ff40a0", render: makeSpriteRenderer(spritePath("dash_pink.png")) },
+  gm_cube:           { label: "Cube",          color: "#40e0d0", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#40e0d0", "\u25A0", false) },
   gm_wave:           { label: "Wave",          color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", false) },
   gm_wave_mini:      { label: "Wave M",        color: "#facc15", render: (c, x, y, s) => drawModePortal(c, x, y, s, "#facc15", "\u2215", true) },
   speed_slow:        { label: "Slow",          color: "#ff8c00", render: makeSpriteRenderer(spritePath("portal_slow.png")) },
@@ -207,7 +208,7 @@ export const TOOLBAR_GROUPS: { label: string; items: ToolType[] }[] = [
   { label: "Green", items: ["spike_green", "spike_green_down"] },
   { label: "Blue", items: ["spike_blue", "spike_blue_down"] },
   { label: "Dash Orbs", items: ["dash_green", "dash_pink"] },
-  { label: "Mode", items: ["gm_wave", "gm_wave_mini"] },
+  { label: "Mode", items: ["gm_cube", "gm_wave", "gm_wave_mini"] },
   { label: "Speed", items: ["speed_slow", "speed_normal", "speed_fast", "speed_vfast", "speed_sfast"] },
   { label: "", items: ["eraser"] },
 ];

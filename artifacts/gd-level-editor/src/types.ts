@@ -10,6 +10,7 @@ export type BuiltinObjectType =
   | "sawblade"
   | "dash_green"
   | "dash_pink"
+  | "gm_cube"
   | "gm_wave"
   | "gm_wave_mini"
   | "speed_slow"
