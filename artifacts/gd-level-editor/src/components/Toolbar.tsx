@@ -351,7 +351,7 @@ export function Toolbar({
           <input
             type="range"
             min="0.5"
-            max="3"
+            max="50"
             step="0.25"
             value={scale}
             onChange={(e) => onScaleChange(parseFloat(e.target.value))}
