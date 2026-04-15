@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 export default defineConfig({
-  base: "/Geometry-Editor/", // ✅ FIXED
+  base: "/Geometry-Editor/",
 
   plugins: [
     react(),
@@ -18,6 +18,6 @@ export default defineConfig({
   },
 
   build: {
-    outDir: "dist", // ✅ FIXED
+    outDir: "dist",
   },
 });
